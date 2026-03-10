@@ -220,6 +220,9 @@ header p {
 .bar.sharp   .hole:nth-child(1) { top: 14px; }
 .bar.sharp   .hole:nth-child(2) { top: 32px; }
 
+/* ── LABEL MODE ── */
+.bars-wrapper[data-labels="none"] .bar-label { visibility: hidden; }
+
 /* ── LABELS ── */
 .bar-label {
   position: absolute;
@@ -665,11 +668,11 @@ const NAT = [
 
 // 17 slots = gaps between 18 naturals; null = no accidental
 const SHR = [
-  {n:'G\u266F', o:4, m:68}, {n:'A\u266F', o:4, m:70}, null,
-  {n:'C\u266F', o:5, m:73}, {n:'D\u266F', o:5, m:75}, null,
-  {n:'F\u266F', o:5, m:78}, {n:'G\u266F', o:5, m:80}, {n:'A\u266F', o:5, m:82}, null,
-  {n:'C\u266F', o:6, m:85}, {n:'D\u266F', o:6, m:87}, null,
-  {n:'F\u266F', o:6, m:90}, {n:'G\u266F', o:6, m:92}, {n:'A\u266F', o:6, m:94}, null,
+  {n:'G\u266F', f:'A\u266D', o:4, m:68}, {n:'A\u266F', f:'B\u266D', o:4, m:70}, null,
+  {n:'C\u266F', f:'D\u266D', o:5, m:73}, {n:'D\u266F', f:'E\u266D', o:5, m:75}, null,
+  {n:'F\u266F', f:'G\u266D', o:5, m:78}, {n:'G\u266F', f:'A\u266D', o:5, m:80}, {n:'A\u266F', f:'B\u266D', o:5, m:82}, null,
+  {n:'C\u266F', f:'D\u266D', o:6, m:85}, {n:'D\u266F', f:'E\u266D', o:6, m:87}, null,
+  {n:'F\u266F', f:'G\u266D', o:6, m:90}, {n:'G\u266F', f:'A\u266D', o:6, m:92}, {n:'A\u266F', f:'B\u266D', o:6, m:94}, null,
 ];
 
 // Keyboard layout mirrors a piano:
@@ -697,17 +700,18 @@ shrRow.className = 'row-sharps';
 SHR.forEach(sd => {
   const sp = document.createElement('div');
   sp.className = 'sharp-spacer';
-  if (sd) sp.appendChild(mkBar(sd.n, sd.o, sd.m, true));
+  if (sd) sp.appendChild(mkBar(sd.n, sd.o, sd.m, true, sd.f));
   shrRow.appendChild(sp);
 });
 
 wrap.appendChild(natRow);
 wrap.appendChild(shrRow);
 
-function mkBar(note, oct, midi, isSharp) {
+function mkBar(note, oct, midi, isSharp, flatNote = null) {
   const el = document.createElement('div');
   el.className = `bar ${isSharp ? 'sharp' : 'natural'}`;
   el.dataset.midi = midi;
+  if (isSharp) { el.dataset.sharp = note; el.dataset.flat = flatNote; el.dataset.oct = oct; }
   midi2el[midi] = el;
 
   // Mounting holes
@@ -749,6 +753,23 @@ function flash(el) {
 }
 
 /* ═══════════════════════════════════════════
+   LABEL MODE  (Shift key cycles)
+═══════════════════════════════════════════ */
+const LABEL_MODES = ['sharps', 'flats', 'none'];
+let labelMode = 'sharps';
+
+function applyLabelMode() {
+  wrap.dataset.labels = labelMode;
+  document.querySelectorAll('.bar.sharp').forEach(bar => {
+    const lbl = bar.querySelector('.bar-label');
+    if (!lbl) return;
+    const name = labelMode === 'flats' ? bar.dataset.flat : bar.dataset.sharp;
+    lbl.innerHTML = `${name}<span class="oct">${bar.dataset.oct}</span>`;
+  });
+}
+applyLabelMode();
+
+/* ═══════════════════════════════════════════
    KEYBOARD INPUT
 ═══════════════════════════════════════════ */
 const held = new Set();
@@ -757,6 +778,15 @@ const pedalEl = document.getElementById('pedalIndicator');
 
 document.addEventListener('keydown', e => {
   if (e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
+
+  // Shift = cycle note label mode (sharps → flats → none)
+  if (e.key === 'Shift') {
+    labelMode = LABEL_MODES[(LABEL_MODES.indexOf(labelMode) + 1) % LABEL_MODES.length];
+    applyLabelMode();
+    return;
+  }
+
+  if (e.shiftKey) return; // don't play notes while shift is held
 
   // Spacebar = vibraphone sustain pedal
   if (e.code === 'Space') {
@@ -814,7 +844,8 @@ modeButtons.forEach(btn => {
 ═══════════════════════════════════════════ */
 document.getElementById('keyGuide').innerHTML =
   'Naturals&nbsp; Z X C V B N M , . / · Q W E R T Y U I<br>' +
-  'Sharps&nbsp;&nbsp;&nbsp; S D · G H · J K L · 2 3 · 5 6 7';
+  'Sharps&nbsp;&nbsp;&nbsp; S D · G H · J K L · 2 3 · 5 6 7<br>' +
+  'Shift&nbsp;&nbsp;&nbsp;&nbsp; cycle note labels&nbsp; ♯ → ♭ → off';
 </script>
 </body>
 </html>
