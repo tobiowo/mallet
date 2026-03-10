@@ -427,6 +427,93 @@ footer {
 }
 .bars-wrapper[data-mode="vibraphone"] .bar.natural .bar-label { color: #3a3020; }
 .bars-wrapper[data-mode="vibraphone"] .bar.natural .key-label { color: rgba(50,40,20,0.72); }
+
+/* ── PRACTICE CUE ── */
+@keyframes cueNat {
+  0%, 100% { filter: brightness(1.1); }
+  50%       { filter: brightness(1.5) drop-shadow(0 0 9px rgba(200,146,42,0.9)); }
+}
+@keyframes cueShr {
+  0%, 100% { filter: brightness(1.6); }
+  50%       { filter: brightness(4.2) drop-shadow(0 0 9px rgba(200,146,42,0.9)); }
+}
+.bar.natural.cue { animation: cueNat 0.72s ease-in-out infinite; }
+.bar.sharp.cue   { animation: cueShr 0.72s ease-in-out infinite; }
+
+/* ── SONG PANEL ── */
+.song-panel {
+  margin-top: 34px;
+  width: min(660px, 100%);
+  text-align: center;
+}
+.drop-zone {
+  border: 1px dashed rgba(200,146,42,0.28);
+  border-radius: 5px;
+  padding: 15px 20px;
+  font-size: 12px;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: #7a6040;
+  transition: border-color 0.2s, color 0.2s;
+  user-select: none;
+}
+.drop-zone.over, .drop-zone:focus-within { border-color: var(--gold); color: var(--gold); }
+.drop-zone label { cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.drop-zone input[type="file"] { display: none; }
+.song-loaded { display: none; }
+.song-loaded.active { display: block; }
+.song-name {
+  font-size: 12px;
+  letter-spacing: 0.45em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.song-btns {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.song-btn {
+  font-family: inherit;
+  font-size: 11px;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  background: none;
+  border: 1px solid rgba(200,146,42,0.22);
+  color: #7a6040;
+  padding: 7px 14px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: border-color 0.18s, color 0.18s, background 0.18s;
+}
+.song-btn:hover:not(:disabled) { border-color: rgba(200,146,42,0.55); color: #a07840; }
+.song-btn.active { border-color: var(--gold); color: var(--gold); background: rgba(200,146,42,0.07); }
+.song-btn:disabled { opacity: 0.25; cursor: default; }
+.tempo-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 11px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: #7a6040;
+  margin-bottom: 10px;
+}
+.tempo-row input[type="range"] { width: 88px; accent-color: var(--gold); cursor: pointer; }
+.song-status {
+  font-size: 11px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: #7a6040;
+  min-height: 1.4em;
+}
 </style>
 </head>
 <body>
@@ -457,6 +544,30 @@ footer {
     <span class="pedal-label">Sustain pedal</span>
   </div>
 
+  <div class="song-panel">
+    <div class="drop-zone" id="dropZone">
+      Drop a MIDI file &nbsp;·&nbsp; or <label for="midiInput">browse</label>
+      <input type="file" id="midiInput" accept=".mid,.midi">
+    </div>
+    <div class="song-status" id="loadError"></div>
+    <div class="song-loaded" id="songLoaded">
+      <div class="song-name" id="songName"></div>
+      <div class="song-btns">
+        <button class="song-btn" id="btnListen">Listen</button>
+        <button class="song-btn" id="btnPractice">Practice</button>
+        <button class="song-btn" id="btnStop" disabled>Stop</button>
+        <button class="song-btn" id="btnClear">Clear</button>
+      </div>
+      <div class="tempo-row">
+        <span>Speed</span>
+        <input type="range" id="tempoSlider" min="25" max="200" value="100">
+        <span id="tempoVal">100%</span>
+        <button class="song-btn" id="btnCompact" title="Cap silences between notes at 1 second">Compact</button>
+      </div>
+      <div class="song-status" id="songStatus"></div>
+    </div>
+  </div>
+
   <footer id="keyGuide"></footer>
 
 </div>
@@ -472,6 +583,7 @@ let pedalDown = false;
 const vibeVoices = new Map(); // active vibraphone gain nodes for damping
 const live = new Map();
 const liveTimers = new Map(); // one cleanup timer per midi pitch
+let onNotePlayed = () => {}; // assigned by song section
 
 function fadeGain(gain, t, dur) {
   gain.cancelScheduledValues(t);
@@ -650,6 +762,7 @@ function ding(midi) {
   live.set(midi, mg.gain);
   clearTimeout(liveTimers.get(midi));
   liveTimers.set(midi, setTimeout(() => { live.delete(midi); liveTimers.delete(midi); }, (cfg.maxT + 1) * 1000));
+  onNotePlayed(midi);
 }
 
 /* ═══════════════════════════════════════════
@@ -838,6 +951,245 @@ modeButtons.forEach(btn => {
     // Show pedal hint only for vibraphone
     pedalEl.classList.toggle('visible', currentMode === 'vibraphone');
   });
+});
+
+/* ═══════════════════════════════════════════
+   MIDI PARSER
+   Handles format 0 & 1, multi-tempo, ignores drums (ch 10).
+   Returns [{time: seconds, pitch: midiNumber}] sorted by time.
+═══════════════════════════════════════════ */
+function parseMidi(ab) {
+  try {
+    const d = new DataView(ab);
+    let p = 0;
+    const r8  = () => d.getUint8(p++);
+    const r16 = () => { const v = d.getUint16(p);  p += 2; return v; };
+    const r32 = () => { const v = d.getUint32(p);  p += 4; return v; };
+    const rVL = () => { let v = 0, b; do { b = r8(); v = (v << 7) | (b & 0x7f); } while (b & 0x80); return v; };
+
+    if (r32() !== 0x4d546864) return null; // 'MThd'
+    r32();                    // chunk length (always 6)
+    r16();                    // format (0 or 1 — handled identically)
+    const nTracks = r16();
+    const div     = r16();    // ticks per quarter note
+
+    const tempos = [{ tick: 0, uspq: 500000 }]; // default 120 BPM
+    const raw    = [];                           // { tick, pitch }
+
+    for (let t = 0; t < nTracks; t++) {
+      if (p + 8 > ab.byteLength) break;
+      if (r32() !== 0x4d54726b) break; // 'MTrk'
+      const trackLen = r32(); const end = p + trackLen; // r32() must advance p before end is computed
+      let tick = 0, status = 0;
+      const on = {}; // pitch → startTick
+
+      while (p < end) {
+        tick += rVL();
+        let b = r8();
+        if      (b >= 0x80 && b < 0xf0) status = b;
+        else if (b < 0x80)              { p--; b = status; } // running status
+
+        const type = b & 0xf0, ch = b & 0x0f;
+
+        if (type === 0x90 || type === 0x80) {
+          const pitch = r8(), vel = r8();
+          if (ch === 9) { /* drums — skip */ }
+          else if (type === 0x90 && vel > 0) { on[pitch] = tick; }
+          else if (on[pitch] != null)        { raw.push({ tick: on[pitch], pitch }); delete on[pitch]; }
+        } else if (type === 0xa0 || type === 0xb0 || type === 0xe0) { r8(); r8(); }
+          else if (type === 0xc0 || type === 0xd0)                  { r8(); }
+          else if (b === 0xf0 || b === 0xf7) { p += rVL(); status = 0; }
+          else if (b === 0xff) {
+            status = 0;
+            const mt = r8(), ml = rVL();
+            if (mt === 0x51 && ml === 3) tempos.push({ tick, uspq: (r8() << 16) | (r8() << 8) | r8() });
+            else p += ml;
+          }
+      }
+      // flush any note-on with no matching note-off
+      for (const [pit, st] of Object.entries(on)) raw.push({ tick: +st, pitch: +pit });
+      p = end;
+    }
+
+    raw.sort((a, b) => a.tick - b.tick);
+    tempos.sort((a, b) => a.tick - b.tick);
+
+    // Convert ticks → seconds respecting all tempo changes
+    function t2s(tick) {
+      let s = 0, lt = 0, lu = 500000;
+      for (const te of tempos) {
+        if (te.tick >= tick) break;
+        s += (te.tick - lt) * lu / (1e6 * div);
+        lt = te.tick; lu = te.uspq;
+      }
+      return s + (tick - lt) * lu / (1e6 * div);
+    }
+
+    return raw.map(e => ({ time: t2s(e.tick), pitch: e.pitch }));
+  } catch(e) { return null; }
+}
+
+/* ═══════════════════════════════════════════
+   SONG PLAYER
+═══════════════════════════════════════════ */
+let song          = null;  // [{time, pitch}] filtered to instrument range
+let songMode      = null;  // 'listen' | 'practice'
+let songTimers    = [];
+let practiceGroups = [];   // notes grouped into chords by proximity in time
+let practiceIdx   = 0;
+
+const setStatus = text => { document.getElementById('songStatus').textContent = text; };
+
+function clearCues() {
+  document.querySelectorAll('.bar.cue').forEach(b => b.classList.remove('cue'));
+}
+
+function stopSong() {
+  songTimers.forEach(clearTimeout);
+  songTimers = [];
+  songMode = null;
+  clearCues();
+  document.getElementById('btnListen').classList.remove('active');
+  document.getElementById('btnPractice').classList.remove('active');
+  document.getElementById('btnStop').disabled = true;
+}
+
+// Compress silences longer than maxGap seconds, preserving rhythm within phrases
+function compactTimings(events, maxGap = 1.0) {
+  if (!events.length) return events;
+  const out = [{ ...events[0], time: 0 }];
+  let t = 0;
+  for (let i = 1; i < events.length; i++) {
+    t += Math.min(events[i].time - events[i - 1].time, maxGap);
+    out.push({ ...events[i], time: t });
+  }
+  return out;
+}
+
+const loadErr = text => { document.getElementById('loadError').textContent = text; };
+
+function loadSong(file) {
+  loadErr('');
+  file.arrayBuffer().then(ab => {
+    const all = parseMidi(ab);
+    if (!all) { loadErr('Could not parse MIDI file.'); return; }
+
+    // Filter to instrument range G4(67)–C7(96)
+    const events = all.filter(e => e.pitch >= 67 && e.pitch <= 96);
+    if (!events.length) { loadErr(`No notes in range G4–C7 (${all.length} total notes all out of range).`); return; }
+
+    song = events;
+
+    // Group simultaneous / near-simultaneous notes into chords (within 60 ms)
+    practiceGroups = [];
+    let grp = [song[0]];
+    for (let i = 1; i < song.length; i++) {
+      if (song[i].time - grp[0].time < 0.06) grp.push(song[i]);
+      else { practiceGroups.push(grp); grp = [song[i]]; }
+    }
+    practiceGroups.push(grp);
+
+    document.getElementById('songName').textContent = file.name.replace(/\.(mid|midi)$/i, '');
+    const skipped = all.length - events.length;
+    setStatus(`${events.length} / ${all.length} notes in range${skipped ? ` (${skipped} out-of-range skipped)` : ''}`);
+    document.getElementById('dropZone').style.display  = 'none';
+    document.getElementById('songLoaded').classList.add('active');
+  });
+}
+
+function startListen() {
+  stopSong();
+  boot();
+  songMode = 'listen';
+  document.getElementById('btnListen').classList.add('active');
+  document.getElementById('btnStop').disabled = false;
+  setStatus('Playing…');
+
+  const speed   = +document.getElementById('tempoSlider').value / 100;
+  const compact = document.getElementById('btnCompact').classList.contains('active');
+  const events  = compact ? compactTimings(song) : song;
+
+  events.forEach(e => {
+    const tid = setTimeout(() => {
+      ding(e.pitch);
+      const el = midi2el[e.pitch];
+      if (el) flash(el);
+    }, e.time / speed * 1000);
+    songTimers.push(tid);
+  });
+
+  // Auto-reset when done
+  const end = events[events.length - 1].time;
+  songTimers.push(setTimeout(() => { stopSong(); setStatus('Done.'); }, end / speed * 1000 + 800));
+}
+
+function startPractice() {
+  stopSong();
+  boot();
+  songMode = 'practice';
+  practiceIdx = 0;
+  document.getElementById('btnPractice').classList.add('active');
+  document.getElementById('btnStop').disabled = false;
+  cuePractice();
+}
+
+function cuePractice() {
+  clearCues();
+  if (practiceIdx >= practiceGroups.length) {
+    setStatus('Complete! ✓');
+    stopSong();
+    return;
+  }
+  const grp = practiceGroups[practiceIdx];
+  grp.forEach(e => { const el = midi2el[e.pitch]; if (el) el.classList.add('cue'); });
+  setStatus(`Note ${practiceIdx + 1} / ${practiceGroups.length}`);
+}
+
+// Hooked into ding() — advance practice on correct note
+onNotePlayed = midi => {
+  if (songMode !== 'practice') return;
+  const grp = practiceGroups[practiceIdx];
+  if (grp && grp.some(e => e.pitch === midi)) {
+    practiceIdx++;
+    setTimeout(cuePractice, 80); // brief pause so flash and cue don't overlap
+  }
+};
+
+// ── File drop / browse ──
+const dropZone = document.getElementById('dropZone');
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('over'); });
+dropZone.addEventListener('dragleave', ()  => dropZone.classList.remove('over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('over');
+  const file = e.dataTransfer.files[0];
+  if (file) loadSong(file);
+});
+document.getElementById('midiInput').addEventListener('change', e => {
+  if (e.target.files[0]) loadSong(e.target.files[0]);
+});
+
+// ── Song control buttons ──
+document.getElementById('btnListen').addEventListener('click',   startListen);
+document.getElementById('btnPractice').addEventListener('click', startPractice);
+document.getElementById('btnStop').addEventListener('click',     stopSong);
+document.getElementById('btnClear').addEventListener('click', () => {
+  stopSong();
+  song = null;
+  document.getElementById('songLoaded').classList.remove('active');
+  document.getElementById('dropZone').style.display = '';
+  setStatus('');
+});
+
+// ── Tempo slider ──
+document.getElementById('tempoSlider').addEventListener('input', e => {
+  document.getElementById('tempoVal').textContent = e.target.value + '%';
+});
+
+// ── Compact toggle ──
+document.getElementById('btnCompact').addEventListener('click', function() {
+  this.classList.toggle('active');
 });
 
 /* ═══════════════════════════════════════════
