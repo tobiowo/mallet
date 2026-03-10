@@ -677,9 +677,10 @@ const SHR = [
 
 // Keyboard layout mirrors a piano:
 //  Natural row:  Z X C V B N M , . /  Q W E R T Y U I
-//  Sharp row:    S D   G H   J K L    2 3   5 6 7
+//  Sharp row:    S D   G H   K L ;    2 3   5 6 7
+// (J sits above the E–F gap which has no sharp, so sharps shift to K L ;)
 const NAT_K = ['z','x','c','v','b','n','m',',','.','/','q','w','e','r','t','y','u','i'];
-const SHR_K = ['s','d',null,'g','h',null,'j','k','l',null,'2','3',null,'5','6','7',null];
+const SHR_K = ['s','d',null,'g','h',null,'k','l',';',null,'2','3',null,'5','6','7',null];
 
 const M2K = {}, K2M = {}; // midi↔key bidirectional lookup
 NAT.forEach((nd, i) => { const k = NAT_K[i]; if (k) { M2K[nd.m] = k; K2M[k] = nd.m; } });
@@ -844,7 +845,7 @@ modeButtons.forEach(btn => {
 ═══════════════════════════════════════════ */
 document.getElementById('keyGuide').innerHTML =
   'Naturals&nbsp; Z X C V B N M , . / · Q W E R T Y U I<br>' +
-  'Sharps&nbsp;&nbsp;&nbsp; S D · G H · J K L · 2 3 · 5 6 7<br>' +
+  'Sharps&nbsp;&nbsp;&nbsp; S D · G H · K L ; · 2 3 · 5 6 7<br>' +
   'Shift&nbsp;&nbsp;&nbsp;&nbsp; cycle note labels&nbsp; ♯ → ♭ → off';
 </script>
 </body>
