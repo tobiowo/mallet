@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Glockenspiel</title>
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --nat-w: 38px;
+  --nat-h: 190px;
+  --shr-w: 22px;
+  --shr-h: 128px;
+  --slot:  42px;
+  --half:  21px;
+  --gold:  #c8922a;
+}
+
+body {
+  background: #080604;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Optima', 'Segoe UI', Candara, 'Gill Sans MT', sans-serif;
+  overflow-x: auto;
+  padding: 50px 24px 80px;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse 65% 50% at 50% 48%, rgba(55,35,12,0.42) 0%, transparent 100%);
+  pointer-events: none;
+}
+
+.page {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ── HEADER ── */
+header {
+  text-align: center;
+  margin-bottom: 50px;
+}
+header h1 {
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: 0.75em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 10px;
+}
+header p {
+  font-size: 12px;
+  letter-spacing: 0.38em;
+  text-transform: uppercase;
+  color: #7a6040;
+}
+
+/* ── FRAME SCROLL WRAPPER ── */
+.frame-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100vw;
+  padding-bottom: 8px; /* room for scrollbar if visible */
+}
+
+/* ── FRAME ── */
+.frame {
+  position: relative;
+  zoom: 1.45;
+  background:
+    repeating-linear-gradient(89deg,
+      rgba(255,185,55,0.014) 0px, rgba(255,185,55,0.014) 1px,
+      transparent 1px, transparent 13px),
+    linear-gradient(158deg, #231808 0%, #130c02 28%, #1e1107 62%, #28160a 100%);
+  border-radius: 10px;
+  padding: 34px 28px 52px;
+  border: 1px solid rgba(200,146,42,0.1);
+  box-shadow:
+    0 55px 130px rgba(0,0,0,0.97),
+    0 22px 55px rgba(0,0,0,0.85),
+    inset 0 1px 0 rgba(200,146,42,0.2),
+    inset 0 -2px 0 rgba(0,0,0,0.7),
+    inset 5px 0 10px rgba(0,0,0,0.5),
+    inset -5px 0 10px rgba(0,0,0,0.5);
+}
+
+/* ── RAILS ── */
+.rail {
+  position: absolute;
+  left: 28px;
+  right: 28px;
+  height: 9px;
+  border-radius: 5px;
+  background: linear-gradient(180deg,
+    rgba(235,192,88,0.95) 0%,
+    rgba(152,98,18,1)    50%,
+    rgba(210,158,58,0.9) 100%);
+  box-shadow: 0 3px 9px rgba(0,0,0,0.8), inset 0 1px 2px rgba(255,242,148,0.38);
+}
+.rail.top    { top: 22px; }
+.rail.bottom { bottom: 31px; }
+.rail::before, .rail::after {
+  content: '';
+  position: absolute;
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  top: 0;
+  background: radial-gradient(circle at 38% 33%, #e8ca72, #9a6515, #280f04);
+  box-shadow: 0 1px 5px rgba(0,0,0,0.95);
+}
+.rail::before { left: 6px; }
+.rail::after  { right: 6px; }
+
+/* ── BARS WRAPPER ── */
+.bars-wrapper { position: relative; }
+
+.row-naturals {
+  display: flex;
+  gap: 4px;
+  position: relative;
+  z-index: 1;
+}
+
+.row-sharps {
+  position: absolute;
+  top: 0;
+  left: var(--half);
+  display: flex;
+  z-index: 3;
+  pointer-events: none;
+}
+.sharp-spacer {
+  width: var(--slot);
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+
+/* ── BARS ── */
+.bar {
+  position: relative;
+  cursor: crosshair;
+  border-radius: 4px 4px 7px 7px;
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  pointer-events: all;
+  touch-action: none;
+}
+
+.bar.natural {
+  width: var(--nat-w);
+  height: var(--nat-h);
+  background: linear-gradient(90deg,
+    #767676  0%,
+    #b2b2b2  8%,
+    #d4d4d4 17%,
+    #eaeaea 24%,
+    #f9f9f9 31%,
+    #ffffff 38%,
+    #f5f5f5 44%,
+    #e2e2e2 54%,
+    #cacaca 68%,
+    #b0b0b0 83%,
+    #979797 100%);
+  box-shadow:
+    4px 0 8px rgba(0,0,0,0.45),
+    -2px 0 5px rgba(0,0,0,0.28),
+    0 10px 22px rgba(0,0,0,0.62),
+    inset 0 0 1px rgba(255,255,255,0.92);
+}
+.bar.natural:hover { filter: brightness(1.07); }
+
+.bar.sharp {
+  width: var(--shr-w);
+  height: var(--shr-h);
+  background: linear-gradient(90deg,
+    #131313  0%,
+    #212121 12%,
+    #2f2f2f 25%,
+    #3a3a3a 37%,
+    #424242 46%,
+    #3c3c3c 55%,
+    #2d2d2d 70%,
+    #1e1e1e 84%,
+    #141414 100%);
+  box-shadow:
+    2px 0 6px rgba(0,0,0,0.82),
+    -1px 0 3px rgba(0,0,0,0.62),
+    0 10px 22px rgba(0,0,0,0.88),
+    inset 1px 0 1px rgba(65,65,65,0.35);
+}
+.bar.sharp:hover { filter: brightness(1.45); }
+
+/* ── HOLES ── */
+.hole {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle at 36% 32%, #676767, #333, #0d0d0d);
+  box-shadow: inset 0 1.5px 3.5px rgba(0,0,0,1), 0 0.5px 0 rgba(210,210,210,0.07);
+  left: 50%;
+  transform: translateX(-50%);
+}
+.bar.natural .hole { width: 7px; height: 7px; }
+.bar.sharp   .hole { width: 5px; height: 5px; }
+.bar.natural .hole:nth-child(1) { top: 22px; }
+.bar.natural .hole:nth-child(2) { top: 50px; }
+.bar.sharp   .hole:nth-child(1) { top: 14px; }
+.bar.sharp   .hole:nth-child(2) { top: 32px; }
+
+/* ── LABELS ── */
+.bar-label {
+  position: absolute;
+  bottom: 7px;
+  font-weight: 700;
+  text-align: center;
+  line-height: 1;
+  pointer-events: none;
+}
+.bar.natural .bar-label { font-size: 13px; letter-spacing: -0.01em; color: #262626; }
+.bar.sharp   .bar-label { font-size: 10px;  color: #8e8e8e; }
+
+.oct {
+  font-size: 8px;
+  font-weight: 400;
+  vertical-align: baseline;
+  position: relative;
+  top: 1px;
+  opacity: 0.5;
+}
+
+.key-label {
+  position: absolute;
+  bottom: 22px;
+  font-size: 10px;
+  line-height: 1;
+  pointer-events: none;
+  letter-spacing: 0;
+}
+.bar.natural .key-label { color: rgba(40,30,20,0.72); }
+.bar.sharp   .key-label { color: rgba(210,200,190,0.7); }
+
+/* ── STRIKE ANIMATIONS ── */
+@keyframes flashNat {
+  0%   { filter: brightness(1); }
+  5%   { filter: brightness(2.3) saturate(0.55); }
+  100% { filter: brightness(1); }
+}
+@keyframes flashShr {
+  0%   { filter: brightness(1); }
+  5%   { filter: brightness(5.0); }
+  100% { filter: brightness(1); }
+}
+@keyframes glowNat {
+  0%, 100% {
+    box-shadow:
+      4px 0 8px rgba(0,0,0,0.45), -2px 0 5px rgba(0,0,0,0.28),
+      0 10px 22px rgba(0,0,0,0.62), inset 0 0 1px rgba(255,255,255,0.92);
+  }
+  6% {
+    box-shadow:
+      0 0 38px rgba(255,242,148,1),
+      0 0 75px rgba(255,212,72,0.65),
+      0 0 120px rgba(255,180,42,0.28);
+  }
+}
+@keyframes glowShr {
+  0%, 100% {
+    box-shadow:
+      2px 0 6px rgba(0,0,0,0.82), -1px 0 3px rgba(0,0,0,0.62),
+      0 10px 22px rgba(0,0,0,0.88), inset 1px 0 1px rgba(65,65,65,0.35);
+  }
+  6% {
+    box-shadow:
+      0 0 28px rgba(155,210,255,0.9),
+      0 0 60px rgba(115,175,255,0.55),
+      0 0 100px rgba(100,148,255,0.22);
+  }
+}
+.bar.natural.hit { animation: flashNat 0.58s ease-out forwards, glowNat 0.58s ease-out forwards; }
+.bar.sharp.hit   { animation: flashShr 0.58s ease-out forwards, glowShr 0.58s ease-out forwards; }
+
+/* ── FOOTER ── */
+footer {
+  margin-top: 40px;
+  font-size: 12px;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: #7a6040;
+  text-align: center;
+  line-height: 2;
+}
+
+/* ── RESPONSIVE ZOOM ── */
+@media (max-width: 1100px) { .frame { zoom: 1.0; } }
+@media (max-width: 720px)  { .frame { zoom: 0.78; } }
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: #080604; }
+::-webkit-scrollbar-thumb { background: #281e0e; border-radius: 2px; }
+
+/* ── PEDAL INDICATOR ── */
+.pedal-row {
+  display: none;
+  align-items: center;
+  gap: 10px;
+  margin-top: 22px;
+  font-size: 12px;
+  letter-spacing: 0.38em;
+  text-transform: uppercase;
+}
+.pedal-row.visible { display: flex; }
+.pedal-key {
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  padding: 4px 12px;
+  border-radius: 3px;
+  transition: all 0.08s;
+  letter-spacing: 0.35em;
+}
+.pedal-label { color: #c8922a; }
+.pedal-row.down .pedal-key {
+  border-color: var(--gold);
+  color: var(--gold);
+  background: rgba(200,146,42,0.1);
+  box-shadow: 0 0 12px rgba(200,146,42,0.35);
+}
+.pedal-row.down .pedal-label { color: #c8922a; }
+
+/* ── MODE SELECTOR ── */
+.mode-selector {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 38px;
+}
+.mode-btn {
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.45em;
+  text-transform: uppercase;
+  background: none;
+  border: 1px solid rgba(200,146,42,0.18);
+  color: #4a3824;
+  padding: 8px 18px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+}
+.mode-btn:hover  { border-color: rgba(200,146,42,0.5); color: #8a6030; }
+.mode-btn.active { border-color: var(--gold); color: var(--gold); background: rgba(200,146,42,0.07); }
+
+/* ── MARIMBA: rosewood/padauk bars ── */
+.bars-wrapper[data-mode="marimba"] .bar.natural {
+  background: linear-gradient(90deg,
+    #7a4e18  0%, #b87830  8%, #d49040 17%,
+    #e8a850 24%, #f0b858 31%, #f4c060 38%,
+    #eeb054 44%, #d49840 54%, #b87828 68%,
+    #9a6018 83%, #7a4a10 100%);
+  box-shadow: 4px 0 8px rgba(0,0,0,0.5), -2px 0 5px rgba(0,0,0,0.3),
+    0 10px 22px rgba(0,0,0,0.65), inset 0 0 1px rgba(255,220,140,0.4);
+}
+.bars-wrapper[data-mode="marimba"] .bar.sharp {
+  background: linear-gradient(90deg,
+    #1e0e04  0%, #301808 12%, #3e2010 25%,
+    #4a2814 37%, #502a14 46%, #4a2812 55%,
+    #382010 70%, #28160a 84%, #1c0e04 100%);
+}
+.bars-wrapper[data-mode="marimba"] .bar.natural .bar-label  { color: #3a2008; }
+.bars-wrapper[data-mode="marimba"] .bar.natural .key-label  { color: rgba(40,20,8,0.72); }
+.bars-wrapper[data-mode="marimba"] .bar.natural .hole {
+  background: radial-gradient(circle at 36% 32%, #5a3a18, #2a1808, #0e0804);
+}
+
+/* ── XYLOPHONE: dense dark rosewood bars ── */
+.bars-wrapper[data-mode="xylophone"] .bar.natural {
+  background: linear-gradient(90deg,
+    #5a2810  0%, #8c4020 8%,  #a84e28 17%,
+    #bc5c30 24%, #c86438 31%, #cc6840 38%,
+    #c05e34 44%, #a84a24 54%, #8a3818 68%,
+    #6e2c10 83%, #562008 100%);
+  box-shadow: 4px 0 8px rgba(0,0,0,0.55), -2px 0 5px rgba(0,0,0,0.35),
+    0 10px 22px rgba(0,0,0,0.7), inset 0 0 1px rgba(220,160,100,0.35);
+}
+.bars-wrapper[data-mode="xylophone"] .bar.sharp {
+  background: linear-gradient(90deg,
+    #160804  0%, #220c06 12%, #2e1008 25%,
+    #381408 37%, #3c140a 46%, #381408 55%,
+    #2c1006 70%, #200c04 84%, #160804 100%);
+}
+.bars-wrapper[data-mode="xylophone"] .bar.natural .bar-label { color: #2a1006; }
+.bars-wrapper[data-mode="xylophone"] .bar.natural .key-label { color: rgba(35,15,5,0.72); }
+.bars-wrapper[data-mode="xylophone"] .bar.natural .hole {
+  background: radial-gradient(circle at 36% 32%, #4a2410, #221008, #0a0402);
+}
+
+/* ── VIBRAPHONE: warm golden aluminum bars ── */
+.bars-wrapper[data-mode="vibraphone"] .bar.natural {
+  background: linear-gradient(90deg,
+    #888070  0%, #c0b090  8%, #d8caa8 17%,
+    #ece0c0 24%, #f8f0d8 31%, #fffae8 38%,
+    #f5ecda 44%, #e2d4b8 54%, #c8b898 68%,
+    #b0a080 83%, #988870 100%);
+  box-shadow: 4px 0 8px rgba(0,0,0,0.42), -2px 0 5px rgba(0,0,0,0.26),
+    0 10px 22px rgba(0,0,0,0.58), inset 0 0 1px rgba(255,248,210,0.9);
+}
+.bars-wrapper[data-mode="vibraphone"] .bar.sharp {
+  background: linear-gradient(90deg,
+    #1a1810  0%, #282418 12%, #343020 25%,
+    #3e3a28 37%, #443e2c 46%, #3e3a28 55%,
+    #302c1e 70%, #222018 84%, #1a1810 100%);
+}
+.bars-wrapper[data-mode="vibraphone"] .bar.natural .bar-label { color: #3a3020; }
+.bars-wrapper[data-mode="vibraphone"] .bar.natural .key-label { color: rgba(50,40,20,0.72); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <h1>Glockenspiel</h1>
+    <p>Click bars &nbsp;·&nbsp; Use keyboard &nbsp;·&nbsp; G4 – C7</p>
+  </header>
+
+  <div class="mode-selector">
+    <button class="mode-btn active" data-mode="glockenspiel">Glockenspiel</button>
+    <button class="mode-btn"        data-mode="xylophone">Xylophone</button>
+    <button class="mode-btn"        data-mode="marimba">Marimba</button>
+    <button class="mode-btn"        data-mode="vibraphone">Vibraphone</button>
+  </div>
+
+  <div class="frame-wrap">
+    <div class="frame">
+      <div class="rail top"></div>
+      <div class="bars-wrapper" id="barsWrapper" data-mode="glockenspiel"></div>
+      <div class="rail bottom"></div>
+    </div>
+  </div>
+
+  <div class="pedal-row" id="pedalIndicator">
+    <span class="pedal-key">SPACE</span>
+    <span class="pedal-label">Sustain pedal</span>
+  </div>
+
+  <footer id="keyGuide"></footer>
+
+</div>
+<script>
+/* ═══════════════════════════════════════════
+   AUDIO ENGINE
+═══════════════════════════════════════════ */
+let actx = null;
+let noiseBuffer = null; // pre-generated marimba noise (reused across notes)
+const verbs = {};
+let currentMode = 'glockenspiel';
+let pedalDown = false;
+const vibeVoices = new Map(); // active vibraphone gain nodes for damping
+const live = new Map();
+const liveTimers = new Map(); // one cleanup timer per midi pitch
+
+function fadeGain(gain, t, dur) {
+  gain.cancelScheduledValues(t);
+  gain.setValueAtTime(gain.value, t);
+  gain.exponentialRampToValueAtTime(0.0001, t + dur);
+}
+
+function releasePedal() {
+  pedalDown = false;
+  setPedalVisual(false);
+  damp();
+}
+
+function normalizeKey(e) {
+  return (e.key === ',' || e.key === '.' || e.key === '/') ? e.key : e.key.toLowerCase();
+}
+
+function damp() {
+  if (!actx) return;
+  const t = actx.currentTime;
+  vibeVoices.forEach(mg => { try { fadeGain(mg.gain, t, 0.12); } catch(e) {} });
+  setTimeout(() => vibeVoices.clear(), 300);
+}
+
+function sustain() {
+  // When pedal goes down, extend decay of all currently ringing vibe notes
+  if (!actx) return;
+  const t = actx.currentTime;
+  vibeVoices.forEach(mg => { try { fadeGain(mg.gain, t, MODES.vibraphone.maxT); } catch(e) {} });
+}
+
+function setPedalVisual(on) {
+  pedalEl.classList.toggle('down', on);
+}
+
+// Per-instrument timbre configs
+const MODES = {
+  glockenspiel: {
+    // Inharmonic metal-bar partials (Rossing 1976). The 2.756× ratio
+    // is the signature overtone that gives glockenspiels their shimmer.
+    partials: [
+      { r: 1.000, a: 1.00, t: 4.4  },
+      { r: 2.756, a: 0.50, t: 2.9  },
+      { r: 5.404, a: 0.22, t: 1.75 },
+      { r: 8.933, a: 0.09, t: 1.10 },
+      { r: 13.34, a: 0.035,t: 0.70 },
+    ],
+    gain: 0.26, attack: 0.003, reverbMix: 0.09, maxT: 5.6,
+    verb: { dur: 1.8, dec: 3.0 },
+  },
+  xylophone: {
+    // Xylophone bars are denser/harder than marimba, so the 1st overtone
+    // lands a 12th above the fundamental (ratio ~3×), giving a brighter,
+    // drier cut compared to marimba's wide 4× interval. Harder mallet attack.
+    partials: [
+      { r: 1.000, a: 1.00, t: 0.90 },
+      { r: 3.000, a: 0.45, t: 0.45 },
+      { r: 9.100, a: 0.12, t: 0.22 },
+    ],
+    gain: 0.42, attack: 0.007, reverbMix: 0.08, maxT: 1.2,
+    noise: true,
+    verb: { dur: 0.7, dec: 4.0 },
+  },
+  marimba: {
+    // Marimba bars are arch-tuned so 1st overtone lands exactly 2 octaves
+    // above the fundamental (ratio 4×). Wooden attack via noise burst.
+    partials: [
+      { r: 1.000, a: 1.00, t: 2.2  },
+      { r: 4.000, a: 0.14, t: 1.0  },
+      { r: 10.00, a: 0.025,t: 0.45 },
+    ],
+    gain: 0.38, attack: 0.010, reverbMix: 0.20, maxT: 2.8,
+    noise: true,
+    verb: { dur: 1.2, dec: 2.5 },
+  },
+  vibraphone: {
+    // Vibraphone metal-bar partials + motor-driven tremolo (~5.4 Hz).
+    // Longer sustain than glockenspiel; more reverb.
+    partials: [
+      { r: 1.000, a: 1.00, t: 6.0 },
+      { r: 3.880, a: 0.32, t: 3.8 },
+      { r: 9.450, a: 0.08, t: 1.6 },
+    ],
+    gain: 0.24, attack: 0.005, reverbMix: 0.14, maxT: 7.0,
+    tremolo: { rate: 5.4, depth: 0.13 },
+    verb: { dur: 2.4, dec: 2.2 },
+  },
+};
+
+function boot() {
+  if (actx) { actx.state === 'suspended' && actx.resume(); return; }
+  actx = new (window.AudioContext || window.webkitAudioContext)();
+  // Pre-generate noise buffer once; only the per-note bandpass filter frequency varies
+  const nLen = actx.sampleRate * 0.035 | 0;
+  noiseBuffer = actx.createBuffer(1, nLen, actx.sampleRate);
+  const nd = noiseBuffer.getChannelData(0);
+  for (let i = 0; i < nLen; i++) nd[i] = Math.random() * 2 - 1;
+  for (const [name, cfg] of Object.entries(MODES)) {
+    verbs[name] = mkVerb(actx, cfg.verb.dur, cfg.verb.dec);
+    verbs[name].connect(actx.destination);
+  }
+}
+
+function mkVerb(c, dur, dec) {
+  const sr = c.sampleRate, len = sr * dur | 0;
+  const b = c.createBuffer(2, len, sr);
+  for (let ch = 0; ch < 2; ch++) {
+    const d = b.getChannelData(ch);
+    for (let i = 0; i < len; i++)
+      d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, dec);
+  }
+  const v = c.createConvolver(); v.buffer = b; return v;
+}
+
+const hz = m => 440 * Math.pow(2, (m - 69) / 12);
+
+function ding(midi) {
+  boot();
+  const cfg = MODES[currentMode];
+  const f = hz(midi), t = actx.currentTime;
+
+  // Retrigger: fade previous voice on this pitch out fast
+  const prev = live.get(midi);
+  if (prev) try { fadeGain(prev, t, 0.055); } catch(e) {}
+
+  const mg = actx.createGain();
+  const damped = currentMode === 'vibraphone' && !pedalDown;
+  const sustainT = damped ? 0.18 : cfg.maxT;
+  mg.gain.setValueAtTime(cfg.gain, t);
+  mg.gain.exponentialRampToValueAtTime(0.0001, t + sustainT);
+  if (currentMode === 'vibraphone') vibeVoices.set(midi, mg);
+
+  // Vibraphone tremolo: use a DOWNSTREAM gain node so the LFO modulates
+  // the already-decaying signal — not the master gain directly (which would
+  // keep the note alive after mg decays to zero via additive modulation).
+  let outNode = mg;
+  if (cfg.tremolo) {
+    const tremoloGain = actx.createGain();
+    tremoloGain.gain.setValueAtTime(1.0, t);
+    mg.connect(tremoloGain);
+    outNode = tremoloGain;
+
+    const lfo = actx.createOscillator(), lfoG = actx.createGain();
+    lfo.type = 'sine'; lfo.frequency.value = cfg.tremolo.rate;
+    lfoG.gain.value = cfg.tremolo.depth;
+    lfo.connect(lfoG); lfoG.connect(tremoloGain.gain);
+    lfo.start(t); lfo.stop(t + sustainT + 0.2);
+  }
+
+  outNode.connect(actx.destination);
+
+  const reverbMix = damped ? 0.01 : cfg.reverbMix;
+  const rg = actx.createGain(); rg.gain.setValueAtTime(reverbMix, t);
+  outNode.connect(rg); rg.connect(verbs[currentMode]);
+
+  // Marimba: brief bandpass-filtered noise for the wooden mallet thump
+  if (cfg.noise) {
+    const ns = actx.createBufferSource(); ns.buffer = noiseBuffer;
+    const nf = actx.createBiquadFilter(); nf.type = 'bandpass'; nf.frequency.value = f; nf.Q.value = 1.5;
+    const ng = actx.createGain();
+    ng.gain.setValueAtTime(0.18, t); ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.035);
+    ns.connect(nf); nf.connect(ng); ng.connect(mg);
+    ns.start(t); ns.stop(t + 0.05);
+  }
+
+  cfg.partials.forEach(p => {
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type = 'sine'; o.frequency.value = f * p.r;
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(p.a, t + cfg.attack);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + p.t);
+    o.connect(g); g.connect(mg);
+    o.start(t); o.stop(t + p.t + 0.15);
+  });
+
+  live.set(midi, mg.gain);
+  clearTimeout(liveTimers.get(midi));
+  liveTimers.set(midi, setTimeout(() => { live.delete(midi); liveTimers.delete(midi); }, (cfg.maxT + 1) * 1000));
+}
+
+/* ═══════════════════════════════════════════
+   NOTE DEFINITIONS
+   3 octaves: G4 → C7
+   18 natural notes, 12 sharps (30 total)
+═══════════════════════════════════════════ */
+const NAT = [
+  {n:'G', o:4, m:67}, {n:'A', o:4, m:69}, {n:'B', o:4, m:71},
+  {n:'C', o:5, m:72}, {n:'D', o:5, m:74}, {n:'E', o:5, m:76},
+  {n:'F', o:5, m:77}, {n:'G', o:5, m:79}, {n:'A', o:5, m:81},
+  {n:'B', o:5, m:83}, {n:'C', o:6, m:84}, {n:'D', o:6, m:86},
+  {n:'E', o:6, m:88}, {n:'F', o:6, m:89}, {n:'G', o:6, m:91},
+  {n:'A', o:6, m:93}, {n:'B', o:6, m:95}, {n:'C', o:7, m:96},
+];
+
+// 17 slots = gaps between 18 naturals; null = no accidental
+const SHR = [
+  {n:'G\u266F', o:4, m:68}, {n:'A\u266F', o:4, m:70}, null,
+  {n:'C\u266F', o:5, m:73}, {n:'D\u266F', o:5, m:75}, null,
+  {n:'F\u266F', o:5, m:78}, {n:'G\u266F', o:5, m:80}, {n:'A\u266F', o:5, m:82}, null,
+  {n:'C\u266F', o:6, m:85}, {n:'D\u266F', o:6, m:87}, null,
+  {n:'F\u266F', o:6, m:90}, {n:'G\u266F', o:6, m:92}, {n:'A\u266F', o:6, m:94}, null,
+];
+
+// Keyboard layout mirrors a piano:
+//  Natural row:  Z X C V B N M , . /  Q W E R T Y U I
+//  Sharp row:    S D   G H   J K L    2 3   5 6 7
+const NAT_K = ['z','x','c','v','b','n','m',',','.','/','q','w','e','r','t','y','u','i'];
+const SHR_K = ['s','d',null,'g','h',null,'j','k','l',null,'2','3',null,'5','6','7',null];
+
+const M2K = {}, K2M = {}; // midi↔key bidirectional lookup
+NAT.forEach((nd, i) => { const k = NAT_K[i]; if (k) { M2K[nd.m] = k; K2M[k] = nd.m; } });
+SHR.forEach((sd, i) => { const k = SHR_K[i]; if (sd && k) { M2K[sd.m] = k; K2M[k] = sd.m; } });
+
+/* ═══════════════════════════════════════════
+   DOM CONSTRUCTION
+═══════════════════════════════════════════ */
+const wrap = document.getElementById('barsWrapper');
+const midi2el = {}; // midi → bar DOM element
+
+const natRow = document.createElement('div');
+natRow.className = 'row-naturals';
+NAT.forEach(nd => natRow.appendChild(mkBar(nd.n, nd.o, nd.m, false)));
+
+const shrRow = document.createElement('div');
+shrRow.className = 'row-sharps';
+SHR.forEach(sd => {
+  const sp = document.createElement('div');
+  sp.className = 'sharp-spacer';
+  if (sd) sp.appendChild(mkBar(sd.n, sd.o, sd.m, true));
+  shrRow.appendChild(sp);
+});
+
+wrap.appendChild(natRow);
+wrap.appendChild(shrRow);
+
+function mkBar(note, oct, midi, isSharp) {
+  const el = document.createElement('div');
+  el.className = `bar ${isSharp ? 'sharp' : 'natural'}`;
+  el.dataset.midi = midi;
+  midi2el[midi] = el;
+
+  // Mounting holes
+  for (let i = 0; i < 2; i++) {
+    const h = document.createElement('div'); h.className = 'hole';
+    el.appendChild(h);
+  }
+
+  // Key hint
+  const k = M2K[midi];
+  if (k) {
+    const kl = document.createElement('span');
+    kl.className = 'key-label';
+    kl.textContent = k.toUpperCase();
+    el.appendChild(kl);
+  }
+
+  // Note label (lowest element)
+  const lbl = document.createElement('span');
+  lbl.className = 'bar-label';
+  lbl.innerHTML = `${note}<span class="oct">${oct}</span>`;
+  el.appendChild(lbl);
+
+  const play = e => {
+    e.preventDefault();
+    ding(midi);
+    flash(el);
+  };
+  el.addEventListener('mousedown', play);
+  el.addEventListener('touchstart', play, { passive: false });
+  return el;
+}
+
+function flash(el) {
+  el.classList.remove('hit');
+  void el.offsetWidth; // restart animation
+  el.classList.add('hit');
+  setTimeout(() => el.classList.remove('hit'), 580);
+}
+
+/* ═══════════════════════════════════════════
+   KEYBOARD INPUT
+═══════════════════════════════════════════ */
+const held = new Set();
+const modeButtons = document.querySelectorAll('.mode-btn');
+const pedalEl = document.getElementById('pedalIndicator');
+
+document.addEventListener('keydown', e => {
+  if (e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
+
+  // Spacebar = vibraphone sustain pedal
+  if (e.code === 'Space') {
+    e.preventDefault();
+    if (currentMode === 'vibraphone' && !pedalDown) {
+      pedalDown = true;
+      setPedalVisual(true);
+      sustain(); // extend any already-ringing notes
+    }
+    return;
+  }
+
+  const key = normalizeKey(e);
+  if (held.has(key)) return;
+  const midi = K2M[key];
+  if (!midi) return;
+  e.preventDefault();
+  held.add(key);
+  ding(midi);
+  const bar = midi2el[midi];
+  if (bar) flash(bar);
+});
+
+document.addEventListener('keyup', e => {
+  // Release pedal
+  if (e.code === 'Space') {
+    e.preventDefault();
+    if (pedalDown) releasePedal();
+    return;
+  }
+  held.delete(normalizeKey(e));
+});
+
+/* ═══════════════════════════════════════════
+   MODE SWITCHING
+═══════════════════════════════════════════ */
+modeButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    btn.blur(); // prevent button keeping focus and stealing spacebar
+    if (pedalDown) releasePedal();
+
+    currentMode = btn.dataset.mode;
+    modeButtons.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    wrap.dataset.mode = currentMode;
+    document.querySelector('header h1').textContent = btn.textContent;
+
+    // Show pedal hint only for vibraphone
+    pedalEl.classList.toggle('visible', currentMode === 'vibraphone');
+  });
+});
+
+/* ═══════════════════════════════════════════
+   KEY GUIDE FOOTER
+═══════════════════════════════════════════ */
+document.getElementById('keyGuide').innerHTML =
+  'Naturals&nbsp; Z X C V B N M , . / · Q W E R T Y U I<br>' +
+  'Sharps&nbsp;&nbsp;&nbsp; S D · G H · J K L · 2 3 · 5 6 7';
+</script>
+</body>
+</html>
