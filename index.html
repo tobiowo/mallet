@@ -563,6 +563,7 @@ footer {
         <input type="range" id="tempoSlider" min="25" max="200" value="100">
         <span id="tempoVal">100%</span>
         <button class="song-btn" id="btnCompact" title="Cap silences between notes at 1 second">Compact</button>
+        <button class="song-btn" id="btnAllNotes" title="Play out-of-range notes (audio only, no bar highlight)">All notes</button>
       </div>
       <div class="song-status" id="songStatus"></div>
     </div>
@@ -618,6 +619,10 @@ function sustain() {
 function setPedalVisual(on) {
   pedalEl.classList.toggle('down', on);
 }
+
+// Bar range: the notes that have physical bars on screen
+const BAR_LO = 67; // G4
+const BAR_HI = 96; // C7
 
 // Per-instrument timbre configs
 const MODES = {
@@ -1032,16 +1037,33 @@ function parseMidi(ab) {
 /* ═══════════════════════════════════════════
    SONG PLAYER
 ═══════════════════════════════════════════ */
-let song          = null;  // [{time, pitch}] filtered to instrument range
+let song          = null;  // [{time, pitch}] all parsed notes
+let inRange       = null;  // subset of song within G4–C7 bar range
 let songMode      = null;  // 'listen' | 'practice'
 let songTimers    = [];
 let practiceGroups = [];   // notes grouped into chords by proximity in time
 let practiceIdx   = 0;
 
-const setStatus = text => { document.getElementById('songStatus').textContent = text; };
+// Cached DOM references
+const elSongStatus  = document.getElementById('songStatus');
+const elLoadError   = document.getElementById('loadError');
+const elBtnListen   = document.getElementById('btnListen');
+const elBtnPractice = document.getElementById('btnPractice');
+const elBtnStop     = document.getElementById('btnStop');
+const elBtnCompact  = document.getElementById('btnCompact');
+const elBtnAllNotes = document.getElementById('btnAllNotes');
+const elDropZone    = document.getElementById('dropZone');
+const elSongLoaded  = document.getElementById('songLoaded');
+const elTempoSlider = document.getElementById('tempoSlider');
+
+const setStatus = text => { elSongStatus.textContent = text; };
+const loadErr   = text => { elLoadError.textContent = text; };
+
+const cuedBars = new Set(); // track cued elements to avoid querySelectorAll
 
 function clearCues() {
-  document.querySelectorAll('.bar.cue').forEach(b => b.classList.remove('cue'));
+  cuedBars.forEach(b => b.classList.remove('cue'));
+  cuedBars.clear();
 }
 
 function stopSong() {
@@ -1049,9 +1071,9 @@ function stopSong() {
   songTimers = [];
   songMode = null;
   clearCues();
-  document.getElementById('btnListen').classList.remove('active');
-  document.getElementById('btnPractice').classList.remove('active');
-  document.getElementById('btnStop').disabled = true;
+  elBtnListen.classList.remove('active');
+  elBtnPractice.classList.remove('active');
+  elBtnStop.disabled = true;
 }
 
 // Compress silences longer than maxGap seconds, preserving rhythm within phrases
@@ -1066,48 +1088,51 @@ function compactTimings(events, maxGap = 1.0) {
   return out;
 }
 
-const loadErr = text => { document.getElementById('loadError').textContent = text; };
-
 function loadSong(file) {
   loadErr('');
   file.arrayBuffer().then(ab => {
     const all = parseMidi(ab);
     if (!all) { loadErr('Could not parse MIDI file.'); return; }
 
-    // Filter to instrument range G4(67)–C7(96)
-    const events = all.filter(e => e.pitch >= 67 && e.pitch <= 96);
-    if (!events.length) { loadErr(`No notes in range G4–C7 (${all.length} total notes all out of range).`); return; }
+    inRange = all.filter(e => e.pitch >= BAR_LO && e.pitch <= BAR_HI);
+    if (!inRange.length) { loadErr(`No notes in range G4–C7 (${all.length} total notes all out of range).`); return; }
 
-    song = events;
+    song = all;
 
-    // Group simultaneous / near-simultaneous notes into chords (within 60 ms)
+    // Practice groups: only notes with bars on screen, grouped into chords (within 60 ms)
     practiceGroups = [];
-    let grp = [song[0]];
-    for (let i = 1; i < song.length; i++) {
-      if (song[i].time - grp[0].time < 0.06) grp.push(song[i]);
-      else { practiceGroups.push(grp); grp = [song[i]]; }
+    let grp = null;
+    for (const e of inRange) {
+      if (!grp || e.time - grp[0].time >= 0.06) { if (grp) practiceGroups.push(grp); grp = [e]; }
+      else grp.push(e);
     }
-    practiceGroups.push(grp);
+    if (grp) practiceGroups.push(grp);
 
     document.getElementById('songName').textContent = file.name.replace(/\.(mid|midi)$/i, '');
-    const skipped = all.length - events.length;
-    setStatus(`${events.length} / ${all.length} notes in range${skipped ? ` (${skipped} out-of-range skipped)` : ''}`);
-    document.getElementById('dropZone').style.display  = 'none';
-    document.getElementById('songLoaded').classList.add('active');
+    const skipped = all.length - inRange.length;
+    setStatus(`${inRange.length} / ${all.length} notes in range${skipped ? ` · ${skipped} out-of-range` : ''}`);
+    elDropZone.style.display  = 'none';
+    elSongLoaded.classList.add('active');
   });
 }
 
-function startListen() {
+function startSong(mode) {
   stopSong();
   boot();
-  songMode = 'listen';
-  document.getElementById('btnListen').classList.add('active');
-  document.getElementById('btnStop').disabled = false;
+  songMode = mode;
+  (mode === 'listen' ? elBtnListen : elBtnPractice).classList.add('active');
+  elBtnStop.disabled = false;
+}
+
+function startListen() {
+  startSong('listen');
   setStatus('Playing…');
 
-  const speed   = +document.getElementById('tempoSlider').value / 100;
-  const compact = document.getElementById('btnCompact').classList.contains('active');
-  const events  = compact ? compactTimings(song) : song;
+  const speed    = +elTempoSlider.value / 100;
+  const compact  = elBtnCompact.classList.contains('active');
+  const allNotes = elBtnAllNotes.classList.contains('active');
+  const base     = allNotes ? song : inRange;
+  const events   = compact ? compactTimings(base) : base;
 
   events.forEach(e => {
     const tid = setTimeout(() => {
@@ -1124,12 +1149,8 @@ function startListen() {
 }
 
 function startPractice() {
-  stopSong();
-  boot();
-  songMode = 'practice';
+  startSong('practice');
   practiceIdx = 0;
-  document.getElementById('btnPractice').classList.add('active');
-  document.getElementById('btnStop').disabled = false;
   cuePractice();
 }
 
@@ -1141,7 +1162,7 @@ function cuePractice() {
     return;
   }
   const grp = practiceGroups[practiceIdx];
-  grp.forEach(e => { const el = midi2el[e.pitch]; if (el) el.classList.add('cue'); });
+  grp.forEach(e => { const el = midi2el[e.pitch]; if (el) { el.classList.add('cue'); cuedBars.add(el); } });
   setStatus(`Note ${practiceIdx + 1} / ${practiceGroups.length}`);
 }
 
@@ -1156,13 +1177,11 @@ onNotePlayed = midi => {
 };
 
 // ── File drop / browse ──
-const dropZone = document.getElementById('dropZone');
-
-dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('over'); });
-dropZone.addEventListener('dragleave', ()  => dropZone.classList.remove('over'));
-dropZone.addEventListener('drop', e => {
+elDropZone.addEventListener('dragover', e => { e.preventDefault(); elDropZone.classList.add('over'); });
+elDropZone.addEventListener('dragleave', ()  => elDropZone.classList.remove('over'));
+elDropZone.addEventListener('drop', e => {
   e.preventDefault();
-  dropZone.classList.remove('over');
+  elDropZone.classList.remove('over');
   const file = e.dataTransfer.files[0];
   if (file) loadSong(file);
 });
@@ -1171,26 +1190,25 @@ document.getElementById('midiInput').addEventListener('change', e => {
 });
 
 // ── Song control buttons ──
-document.getElementById('btnListen').addEventListener('click',   startListen);
-document.getElementById('btnPractice').addEventListener('click', startPractice);
-document.getElementById('btnStop').addEventListener('click',     stopSong);
+elBtnListen.addEventListener('click',   startListen);
+elBtnPractice.addEventListener('click', startPractice);
+elBtnStop.addEventListener('click',     stopSong);
 document.getElementById('btnClear').addEventListener('click', () => {
   stopSong();
-  song = null;
-  document.getElementById('songLoaded').classList.remove('active');
-  document.getElementById('dropZone').style.display = '';
+  song = null; inRange = null;
+  elSongLoaded.classList.remove('active');
+  elDropZone.style.display = '';
   setStatus('');
 });
 
 // ── Tempo slider ──
-document.getElementById('tempoSlider').addEventListener('input', e => {
+elTempoSlider.addEventListener('input', e => {
   document.getElementById('tempoVal').textContent = e.target.value + '%';
 });
 
-// ── Compact toggle ──
-document.getElementById('btnCompact').addEventListener('click', function() {
-  this.classList.toggle('active');
-});
+// ── Compact / All notes toggles ──
+elBtnCompact.addEventListener('click', function() { this.classList.toggle('active'); });
+elBtnAllNotes.addEventListener('click', function() { this.classList.toggle('active'); });
 
 /* ═══════════════════════════════════════════
    KEY GUIDE FOOTER
