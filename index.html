@@ -79,8 +79,9 @@ let onNotePlayed = () => {}; // assigned by song section
 
 function fadeGain(gain, t, dur) {
   gain.cancelScheduledValues(t);
-  gain.setValueAtTime(gain.value, t);
-  gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  // setTargetAtTime smoothly fades from whatever the current interpolated value
+  // is (no pop/click), asymptotically reaching 0 with time constant dur/4.
+  gain.setTargetAtTime(0.0001, t, dur / 4);
 }
 
 function releasePedal() {
@@ -173,6 +174,8 @@ const MODES = {
   },
 };
 
+let globalVibeLFO = null, globalVibeLFOGain = null;
+
 function boot() {
   if (actx) { actx.state === 'suspended' && actx.resume(); return; }
   actx = new (window.AudioContext || window.webkitAudioContext)();
@@ -185,6 +188,15 @@ function boot() {
     verbs[name] = mkVerb(actx, cfg.verb.dur, cfg.verb.dec);
     verbs[name].connect(actx.destination);
   }
+  // Single global vibraphone LFO — all notes share the same motor phase
+  const vt = MODES.vibraphone.tremolo;
+  globalVibeLFO = actx.createOscillator();
+  globalVibeLFOGain = actx.createGain();
+  globalVibeLFO.type = 'sine';
+  globalVibeLFO.frequency.value = vt.rate;
+  globalVibeLFOGain.gain.value = vt.depth;
+  globalVibeLFO.connect(globalVibeLFOGain);
+  globalVibeLFO.start();
 }
 
 function mkVerb(c, dur, dec) {
@@ -211,26 +223,21 @@ function ding(midi) {
 
   const mg = actx.createGain();
   const damped = currentMode === 'vibraphone' && !pedalDown;
-  const sustainT = damped ? 0.18 : cfg.maxT;
+  // mg stays flat at cfg.gain — natural decay is handled by each partial's own
+  // envelope. mg is only used for forced damping (retrigger / pedal release).
   mg.gain.setValueAtTime(cfg.gain, t);
-  mg.gain.exponentialRampToValueAtTime(0.0001, t + sustainT);
+  if (damped) mg.gain.setTargetAtTime(0.0001, t, 0.18 / 4); // immediate damp
   if (currentMode === 'vibraphone') vibeVoices.set(midi, mg);
 
-  // Vibraphone tremolo: use a DOWNSTREAM gain node so the LFO modulates
-  // the already-decaying signal — not the master gain directly (which would
-  // keep the note alive after mg decays to zero via additive modulation).
+  // Vibraphone tremolo: downstream gain node modulated by the shared global LFO
+  // so all simultaneously ringing notes share the same motor phase.
   let outNode = mg;
   if (cfg.tremolo) {
     const tremoloGain = actx.createGain();
     tremoloGain.gain.setValueAtTime(1.0, t);
     mg.connect(tremoloGain);
     outNode = tremoloGain;
-
-    const lfo = actx.createOscillator(), lfoG = actx.createGain();
-    lfo.type = 'sine'; lfo.frequency.value = cfg.tremolo.rate;
-    lfoG.gain.value = cfg.tremolo.depth;
-    lfo.connect(lfoG); lfoG.connect(tremoloGain.gain);
-    lfo.start(t); lfo.stop(t + sustainT + 0.2);
+    globalVibeLFOGain.connect(tremoloGain.gain);
   }
 
   outNode.connect(actx.destination);
@@ -255,8 +262,10 @@ function ding(midi) {
   }
 
   cfg.partials.forEach(p => {
+    const freq = f * p.r;
+    if (freq >= actx.sampleRate / 2) return; // above Nyquist — skip to avoid aliasing
     const o = actx.createOscillator(), g = actx.createGain();
-    o.type = 'sine'; o.frequency.value = f * p.r;
+    o.type = 'sine'; o.frequency.value = freq;
     const pa = p.aFn ? p.aFn(midi) : p.a;
     const pt = p.tFn ? p.tFn(midi) : p.t;
     g.gain.setValueAtTime(0, t);
