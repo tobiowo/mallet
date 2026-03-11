@@ -18,7 +18,7 @@ Supported instruments:
 - **Keyboard playable**: full keyboard layout for natural notes and sharps
 - **Click or tap to play**: works with mouse and touch screens
 - **MIDI file support**: load `.mid`/`.midi` files to listen or practice with visual note cues
-- **Vibraphone motor tremolo**: authentic ~5.4 Hz tremolo effect; spacebar acts as sustain pedal
+- **Vibraphone motor tremolo**: authentic tremolo effect (adjustable fan speed); spacebar acts as sustain pedal
 - **Playback speed control**: 25–200% speed; optional silence compression
 - **Web Audio API**: sine oscillators with harmonic partials for each instrument
 - **Self-contained**: single `index.html` file, no dependencies or build step
@@ -87,4 +87,8 @@ Simply open `index.html` in any modern browser. No server required.
 ## Browser Compatibility
 
 Requires a browser with Web Audio API support (Chrome, Firefox, Safari, Edge — all modern versions).
+
+## Acoustics & Theory
+
+See [theory.md](theory.md) for notes on the physical and musical principles behind the synthesis — free-bar vibration physics, arch tuning, the vibraphone tremolo mechanism, and more, with references to primary sources.
 
