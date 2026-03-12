@@ -477,7 +477,12 @@ modeButtons.forEach(btn => {
 document.getElementById('keyGuide').innerHTML =
   'Naturals&nbsp; Z X C V B N M , . / · Q W E R T Y U I<br>' +
   'Sharps&nbsp;&nbsp;&nbsp; S D · G H · K L ; · 2 3 · 5 6 7<br>' +
-  'Shift&nbsp;&nbsp;&nbsp;&nbsp; cycle note labels&nbsp; ♯ → ♭ → off';
+  '<button id="btnLabelCycle" class="label-cycle-btn">&#9839; &#8644; &#9837;</button>';
+
+document.getElementById('btnLabelCycle').addEventListener('click', () => {
+  labelMode = LABEL_MODES[(LABEL_MODES.indexOf(labelMode) + 1) % LABEL_MODES.length];
+  applyLabelMode();
+});
 </script>
 <script src="midi.js"></script>
 <script>
