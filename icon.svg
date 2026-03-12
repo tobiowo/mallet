@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Background -->
+  <rect width="512" height="512" rx="96" fill="#080604"/>
+
+  <!-- Glockenspiel bars — 5 bars, graduated height, gold tones -->
+  <!-- Bar 1 (lowest/widest) -->
+  <rect x="62"  y="148" width="52" height="240" rx="10" fill="#c8922a"/>
+  <!-- Bar 2 -->
+  <rect x="130" y="168" width="48" height="210" rx="10" fill="#d4a03a"/>
+  <!-- Bar 3 (middle) -->
+  <rect x="194" y="186" width="46" height="186" rx="10" fill="#e8ca72"/>
+  <!-- Bar 4 -->
+  <rect x="256" y="204" width="44" height="162" rx="10" fill="#d4a03a"/>
+  <!-- Bar 5 (highest/narrowest) -->
+  <rect x="316" y="220" width="42" height="140" rx="10" fill="#c8922a"/>
+
+  <!-- Mallet — handle and ball -->
+  <line x1="370" y1="390" x2="460" y2="130" stroke="#7a6040" stroke-width="14" stroke-linecap="round"/>
+  <circle cx="463" cy="120" r="30" fill="#e8ca72"/>
+</svg>

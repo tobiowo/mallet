@@ -1,0 +1,21 @@
+{
+  "name": "Mallet",
+  "short_name": "Mallet",
+  "description": "Browser-based mallet percussion instrument simulator",
+  "start_url": "/mallet/",
+  "display": "standalone",
+  "background_color": "#080604",
+  "theme_color": "#080604",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

@@ -3,7 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Glockenspiel</title>
+<title>Mallet</title>
+<meta name="theme-color" content="#080604">
+<link rel="manifest" href="manifest.json">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -478,5 +480,10 @@ document.getElementById('keyGuide').innerHTML =
   'Shift&nbsp;&nbsp;&nbsp;&nbsp; cycle note labels&nbsp; ♯ → ♭ → off';
 </script>
 <script src="midi.js"></script>
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/mallet/sw.js');
+  }
+</script>
 </body>
 </html>
