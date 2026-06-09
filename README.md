@@ -92,3 +92,15 @@ Requires a browser with Web Audio API support (Chrome, Firefox, Safari, Edge —
 
 See [theory.md](theory.md) for notes on the physical and musical principles behind the synthesis — free-bar vibration physics, arch tuning, the vibraphone tremolo mechanism, and more, with references to primary sources.
 
+## Running Tests
+
+The MIDI parser has a unit test suite that runs on Node's built-in test runner (Node 18+) — no install or dependencies needed:
+
+```sh
+node --test
+```
+
+## License
+
+MIT — see [LICENSE](LICENSE).
+
