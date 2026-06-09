@@ -67,8 +67,14 @@ function applyTrackFilter() {
   setStatus(`${inRange.length} / ${song.length} notes in range${skipped ? ` · ${skipped} out-of-range` : ''}`);
 }
 
+const MAX_MIDI_BYTES = 5 * 1024 * 1024; // real MIDI files are rarely over a few hundred KB
+
 function loadSong(file) {
   loadErr('');
+  if (file.size > MAX_MIDI_BYTES) {
+    loadErr(`File too large (${(file.size / 1048576).toFixed(1)} MB) — MIDI files should be well under 5 MB.`);
+    return;
+  }
   file.arrayBuffer().then(ab => {
     const all = parseMidi(ab);
     if (!all) { loadErr('Could not parse MIDI file.'); return; }

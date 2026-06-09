@@ -79,7 +79,7 @@ function parseMidi(ab) {
     const events = raw.map(e => ({ time: t2s(e.tick), pitch: e.pitch, track: e.track }));
     events.trackNames = trackNames; // piggyback on the array
     return events;
-  } catch(e) { return null; }
+  } catch(e) { console.warn('MIDI parse failed:', e); return null; }
 }
 
 // Compress silences longer than maxGap seconds, preserving rhythm within phrases
