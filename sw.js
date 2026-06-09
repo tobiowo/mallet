@@ -1,8 +1,9 @@
-const CACHE = 'mallet-v1';
+const CACHE = 'mallet-v2';
 const ASSETS = [
   '/mallet/',
   '/mallet/index.html',
   '/mallet/style.css',
+  '/mallet/parser.js',
   '/mallet/midi.js',
 ];
 
@@ -18,8 +19,18 @@ self.addEventListener('activate', e => {
   self.clients.claim();
 });
 
+// Stale-while-revalidate: serve from cache instantly, refresh the cache in the
+// background so updates land on the next visit. Falls back to network if uncached.
 self.addEventListener('fetch', e => {
   e.respondWith(
-    caches.match(e.request).then(cached => cached || fetch(e.request))
+    caches.open(CACHE).then(c =>
+      c.match(e.request).then(cached => {
+        const fresh = fetch(e.request).then(res => {
+          if (res.ok && e.request.method === 'GET') c.put(e.request, res.clone());
+          return res;
+        }).catch(() => cached);
+        return cached || fresh;
+      })
+    )
   );
 });
