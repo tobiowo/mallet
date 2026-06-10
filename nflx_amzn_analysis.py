@@ -26,7 +26,7 @@ from tabulate import tabulate
 warnings.filterwarnings("ignore")
 
 TICKERS     = ["NFLX", "AMZN"]
-AS_OF_DATE  = date(2025, 8, 1)        # data reference date
+AS_OF_DATE  = date(2026, 6, 10)       # data reference date
 CHART_DIR   = "/home/user/mallet"
 
 # ─────────────────────────────────────────────────────────────
@@ -36,121 +36,130 @@ CHART_DIR   = "/home/user/mallet"
 REFERENCE = {
     "NFLX": {
         # ── Valuation ──────────────────────────────────────────
-        "currentPrice":                   985.0,
-        "trailingPE":                      48.2,
-        "forwardPE":                       34.7,
-        "pegRatio":                         1.8,
-        "priceToSalesTrailing12Months":    10.1,
-        "enterpriseToEbitda":              27.3,
-        "targetMeanPrice":               1_085.0,
-        "targetHighPrice":               1_250.0,
-        "targetLowPrice":                  810.0,
-        "numberOfAnalystOpinions":           42,
-        "recommendationKey":              "buy",
+        # Note: 10-for-1 stock split completed Nov 17, 2025 (pre-split ~$1,200)
+        "currentPrice":                    81.41,   # June 9, 2026 close
+        "trailingPE":                       23.8,   # TTM EPS ~$3.42 post-split
+        "forwardPE":                        17.9,   # FY2026 EPS est. ~$4.55
+        "pegRatio":                          1.12,  # growth ~16%, fwd P/E ~18x
+        "priceToSalesTrailing12Months":      6.7,   # mkt cap ~$350B / TTM rev ~$47B
+        "enterpriseToEbitda":               16.1,
+        "targetMeanPrice":                 114.56,  # S&P Global, 50 analysts
+        "targetHighPrice":                 151.40,
+        "targetLowPrice":                   80.00,
+        "numberOfAnalystOpinions":           50,
+        "recommendationKey":              "buy",    # 37 Buy / 12 Hold / 1 Sell
 
         # ── Fundamentals ───────────────────────────────────────
-        "totalRevenue":            38_900_000_000,
-        "revenueGrowth":                    0.157,
-        "grossMargins":                     0.449,
-        "operatingMargins":                 0.268,
-        "profitMargins":                    0.197,
-        "netIncomeToCommon":        7_660_000_000,
-        "freeCashflow":             6_930_000_000,
-        "debtToEquity":                      54.2,
-        "currentRatio":                       1.22,
-        "paidSubscribers":          "~310 million (Q2 2025 est.)",
+        # Q1 2026: revenue $12.25B (+16.2% YoY), op margin 32.3%
+        "totalRevenue":            47_000_000_000,  # ~TTM through Q1 2026
+        "revenueGrowth":                    0.162,  # Q1 2026 YoY
+        "grossMargins":                     0.468,
+        "operatingMargins":                 0.323,  # Q1 2026 operating margin
+        "profitMargins":                    0.205,
+        "netIncomeToCommon":        9_630_000_000,  # includes $2.8B WBD termination fee
+        "freeCashflow":             7_200_000_000,
+        "debtToEquity":                      48.3,
+        "currentRatio":                       1.18,
+        "paidSubscribers":          "325 million globally (Q1 2026)",
 
         # ── Analyst / earnings ─────────────────────────────────
-        "nextEarnings":            "October 2025",
-        "lastEPS_beat":            "Beat consensus in Q1 2025 by ~$0.80; "
-                                   "beat Q4 2024 by ~$0.72",
+        "nextEarnings":            "July 16, 2026",
+        "lastEPS_beat":            "Q1 2026: Rev $12.25B beat; op margin 32.3% beat. "
+                                   "EPS $1.23 (incl. $2.8B WBD termination fee). "
+                                   "FY2026 rev guidance $50.7B–$51.7B reiterated.",
 
-        # ── News / sentiment ───────────────────────────────────
+        # ── News / sentiment (June 2026, sourced via web search) ──
         "headlines": [
-            "Netflix tops 300M paid subscribers, raises prices in key markets",
-            "Netflix ad-supported tier reaches 40M monthly active users",
-            "Analysts raise NFLX targets after Q2 2025 earnings beat",
-            "Netflix expanding live sports — NFL Christmas Games re-signed",
-            "Netflix raises guidance for operating income to $9.5B in 2025",
-            "Competition from Disney+, Max eases as rivals cut content spend",
-            "Netflix gaming push: 100+ titles, mostly included in subscription",
-            "Activist concerns about password-sharing saturation overblown — analyst",
-            "Netflix AI-driven content recommendation upgrade boosts watch time",
-            "Strong international growth: Latin America and APAC outperform",
+            "Netflix Q1 2026: revenue +16% to $12.25B, subscribers hit 325M globally",
+            "Netflix ad tier now >60% of new sign-ups in ad-supported markets",
+            "Netflix on track for ~$3B ad revenue in 2026 — doubling year over year",
+            "Warner Bros. Discovery deal terminated; Netflix receives $2.8B break fee",
+            "NFLX down ~39% from 52-week high; Q2 revenue guidance disappointed Street",
+            "Analyst consensus price target $114.56 — ~40% upside from current $81",
+            "Brazilian tax dispute continues to weigh on sentiment into 2026",
+            "37 analysts rate NFLX Buy, 12 Hold, 1 Sell — strong conviction despite selloff",
+            "Netflix FY2026 guidance: $50.7B–$51.7B revenue, op margin ~32%+",
+            "Jay Hoag appointed Chairman of the Board at June 2026 annual meeting",
         ],
 
-        # ── Price key levels (June 2024 → Aug 2025) ──────────
-        # Used to construct synthetic OHLCV for technical analysis
+        # ── Price key levels (split-adjusted, June 2024 → June 2026) ──────
+        # All prices are post-split adjusted (÷10 for pre-Nov-2025 levels)
         "price_anchors": {
-            "2024-06-10":  620,
-            "2024-08-05":  590,   # summer sell-off
-            "2024-10-14":  760,   # Q3 earnings surge
-            "2024-12-31":  870,
-            "2025-01-22":  998,   # Q4 2024 blowout earnings
-            "2025-04-15":  945,   # Q1 2025 slight miss on guidance tone
-            "2025-06-01": 1010,
-            "2025-08-01":  985,   # reference date
+            "2024-06-10":   64,   # ~$640 pre-split
+            "2024-08-05":   62,   # summer dip
+            "2024-10-14":   78,   # Q3 2024 earnings surge
+            "2025-01-22":  105,   # Q4 2024 blowout, ~$1,050 pre-split
+            "2025-06-30":  134,   # all-time high (split-adjusted)
+            "2025-11-17":  120,   # 10-for-1 split effective date
+            "2025-12-31":  112,
+            "2026-04-16":   88,   # Q1 2026 earnings; soft Q2 guidance disappoints
+            "2026-06-09":   81,   # current
         },
     },
 
     "AMZN": {
         # ── Valuation ──────────────────────────────────────────
-        "currentPrice":                   205.0,
-        "trailingPE":                      42.8,
-        "forwardPE":                       28.6,
-        "pegRatio":                         1.4,
-        "priceToSalesTrailing12Months":     3.25,
-        "enterpriseToEbitda":              22.1,
-        "targetMeanPrice":                240.0,
-        "targetHighPrice":                280.0,
-        "targetLowPrice":                 165.0,
-        "numberOfAnalystOpinions":           56,
+        "currentPrice":                   243.41,  # June 9, 2026 close
+        "trailingPE":                       25.6,  # TTM net income ~$101B
+        "forwardPE":                        20.3,  # FY2026 EPS est. ~$12
+        "pegRatio":                          1.16, # growth ~17%, fwd P/E ~20x
+        "priceToSalesTrailing12Months":      3.65, # mkt cap ~$2.6T / TTM rev ~$695B
+        "enterpriseToEbitda":               19.4,
+        "targetMeanPrice":                 312.79, # S&P Global, 66 analysts
+        "targetHighPrice":                 370.00,
+        "targetLowPrice":                  207.00,
+        "numberOfAnalystOpinions":           66,
         "recommendationKey":         "strong_buy",
 
         # ── Fundamentals ───────────────────────────────────────
-        "totalRevenue":           620_000_000_000,
-        "revenueGrowth":                    0.113,
-        "grossMargins":                     0.467,
-        "operatingMargins":                 0.102,
-        "profitMargins":                    0.073,
-        "netIncomeToCommon":       45_300_000_000,
-        "freeCashflow":            54_800_000_000,
-        "debtToEquity":                      62.5,
-        "currentRatio":                       1.08,
-        "AWSRevenue_TTM":          "~$107B TTM (+17% YoY)",
-        "AWSOperatingIncome":      "~$39B TTM (operating margin ~36%)",
-        "RetailNA_Revenue":        "~$310B TTM",
-        "AdvertisingRevenue":      "~$56B TTM (+23% YoY)",
+        # Q1 2026: net sales $181.5B (+17% YoY), AWS $37.6B (+28%)
+        "totalRevenue":           695_000_000_000,  # TTM through Q1 2026
+        "revenueGrowth":                    0.170,  # Q1 2026 YoY
+        "grossMargins":                     0.502,  # expanding due to AWS/ads mix
+        "operatingMargins":                 0.132,  # Q1 2026: $23.9B / $181.5B
+        "profitMargins":                    0.167,  # Q1 net income $30.3B / $181.5B
+        "netIncomeToCommon":      101_000_000_000,  # TTM ~$101B
+        "freeCashflow":            62_000_000_000,  # FCF post heavy CapEx
+        "debtToEquity":                      55.1,
+        "currentRatio":                       1.12,
+        "AWSRevenue_TTM":          "~$140B TTM (+28% YoY); $150B annualized run-rate",
+        "AWSOperatingIncome":      "~$52B TTM; Q1 2026 op income $14.2B (margin ~38%)",
+        "RetailNA_Revenue":        "$104.1B Q1 2026 (+12% YoY)",
+        "AdvertisingRevenue":      "Growing >20% YoY; ~$60B+ TTM",
 
         # ── Analyst / earnings ─────────────────────────────────
-        "nextEarnings":            "October 2025",
-        "lastEPS_beat":            "Beat consensus in Q1 2025 by ~$0.34; "
-                                   "Q4 2024 beat by ~$0.23",
+        "nextEarnings":            "Late July / Early August 2026",
+        "lastEPS_beat":            "Q1 2026: Net sales $181.5B (+17%), beat est. "
+                                   "AWS $37.6B (+28%), 15-quarter high growth rate. "
+                                   "EPS $2.78 vs est. ~$1.65. Op income $23.9B.",
 
-        # ── News / sentiment ───────────────────────────────────
+        # ── News / sentiment (June 2026, sourced via web search) ──
         "headlines": [
-            "Amazon AWS tops $100B run-rate, accelerating on AI demand",
-            "Amazon raises full-year operating income guidance above Street estimate",
-            "Amazon advertising business grows 23% YoY, closing gap on Meta/Google",
-            "Amazon Project Kuiper satellite internet enters commercial beta",
-            "Analysts: AMZN increasingly a 'platform' story, not just retail",
-            "Amazon healthcare (One Medical, RxPass) expansion accelerates",
-            "AWS Bedrock AI inference demand driving record capacity buildout",
-            "Amazon logistics cost-per-unit hits multi-year low on efficiency drive",
+            "Amazon Q1 2026: revenue +17% to $181.5B; AWS growth hits 15-quarter high at +28%",
+            "AWS annualized run-rate reaches $150B on AI infrastructure demand surge",
+            "AMZN up 19% YTD, outpacing S&P 500's 10% gain through June 2026",
+            "Amazon Q1 CapEx $43.2B — record spend on AI data center buildout",
+            "Truist sets $320 price target on AMZN; consensus at $312 — ~28% upside",
+            "Amazon launches Supply Chain Services, expanding logistics platform",
+            "Prime Day 2026 announced for June 23–26 with new deals every 5 minutes",
+            "Amazon Pharmacy expands Ozempic same-day delivery to 3,000+ cities",
+            "Amazon–Corning multibillion-dollar fiber deal for data center infrastructure",
             "Antitrust scrutiny on Amazon marketplace seller practices continues",
-            "Amazon MGM / Prime Video content investment moderating in 2025",
         ],
 
-        # ── Price key levels ────────────────────────────────────
+        # ── Price key levels (June 2024 → June 2026) ────────────
         "price_anchors": {
             "2024-06-10":  183,
-            "2024-08-05":  168,   # summer sell-off
-            "2024-10-31":  198,   # strong Q3 earnings
+            "2024-08-05":  168,   # summer macro sell-off
+            "2024-10-31":  198,   # strong Q3 2024 earnings
             "2024-12-31":  224,
             "2025-02-06":  236,   # Q4 2024 beat
-            "2025-04-07":  185,   # tariff/macro scare
-            "2025-05-15":  208,
-            "2025-08-01":  205,   # reference date
+            "2025-04-07":  178,   # tariff/macro scare
+            "2025-07-01":  210,
+            "2025-12-31":  228,
+            "2026-04-29":  248,   # Q1 2026 earnings beat
+            "2026-06-05":  240,   # slight pullback on CapEx concerns
+            "2026-06-09":  243,   # current
         },
     },
 }
@@ -707,15 +716,17 @@ def print_recommendation(nflx_s, amzn_s, n_tot, a_tot, results):
         print(f"  │  Watchpoints   : {', '.join(weaknesses) if weaknesses else 'None flagged'}")
 
         if ticker == "NFLX":
-            print("  │  Key Thesis    : Profitable, FCF-generative streaming leader with")
-            print("  │                  ad tier monetization & live sports as new growth vecs.")
-            print("  │                  Rich valuation (fwd P/E ~35x) limits upside; execution")
-            print("  │                  on password-sharing monetization is critical.")
+            print("  │  Key Thesis    : Stock down ~39% from 52-wk high on WBD deal fallout,")
+            print("  │                  Brazil tax dispute & soft Q2 guidance. But fundamentals")
+            print("  │                  are strong: 325M subscribers, 32% op margin, $3B ad rev")
+            print("  │                  on track. Fwd P/E ~18x is cheapest since 2022. ~40%")
+            print("  │                  upside to consensus target. July 16 earnings are the key.")
         else:
-            print("  │  Key Thesis    : AWS AI-driven reacceleration + advertising = dual engine.")
-            print("  │                  Lower multiple vs historical + strong FCF = valuation")
-            print("  │                  support. Tariff/macro sensitivity to retail segment is")
-            print("  │                  the primary near-term risk.")
+            print("  │  Key Thesis    : AWS accelerating to 28% YoY — fastest in 15 quarters —")
+            print("  │                  on AI infrastructure demand. Ads >20% YoY. Stock up 19%")
+            print("  │                  YTD. CapEx $43B/quarter is a short-term drag on FCF but")
+            print("  │                  signals long-term cloud dominance. Fwd P/E ~20x with 17%")
+            print("  │                  revenue growth = attractive risk/reward at current levels.")
 
         print(f"  └{'─' * 65}")
 
@@ -730,16 +741,19 @@ def print_recommendation(nflx_s, amzn_s, n_tot, a_tot, results):
 
     print("""
   Summary:
-  • AMZN scores better on Valuation (lower multiples, higher PEG-adjusted value)
-    and Analyst Conviction (larger coverage, Strong Buy consensus).
-  • NFLX scores better on Growth quality (higher margins) and near-term Momentum.
-  • For risk-tolerant investors: NFLX for momentum + margin expansion story.
-  • For value-oriented investors: AMZN for AWS reacceleration at a cheaper multiple.
-  • Portfolio approach: 60/40 AMZN/NFLX weighting balances growth with value.
+  • NFLX is in a sentiment-driven selloff: ~39% off highs, fwd P/E ~18x, ~40%
+    upside to analyst consensus. Strong fundamentals (325M subs, 32% op margin,
+    $3B ad run-rate) are intact. July 16 earnings are the near-term catalyst.
+  • AMZN is firing on all cylinders: AWS at 28% YoY (15-qtr high), ads >20%,
+    stock +19% YTD with 28% upside to consensus. CapEx drag is real but priced in.
+  • NFLX offers higher potential upside (~40%) but carries more headline risk.
+  • AMZN offers steadier compounding with broad analyst support (66 analysts,
+    Strong Buy). Prime Day (June 23–26) is an upcoming near-term catalyst.
+  • Split decision: NFLX for a contrarian recovery trade; AMZN for quality growth.
 
-  ⚠  DATA NOTE: Valuations/fundamentals are from training knowledge (~Aug 2025).
-     Price history is synthetically generated from known key price anchors.
-     Re-run with live yfinance data locally for current market accuracy.
+  ⚠  DATA NOTE: Valuations/fundamentals sourced via live web search (Jun 10, 2026).
+     Price history is a synthetic OHLCV series anchored to known key price levels.
+     Re-run with live yfinance data locally for tick-accurate price history.
 
   ⚠  DISCLAIMER: This analysis is NOT financial advice. Consult a licensed
      financial advisor before making investment decisions.
@@ -805,8 +819,8 @@ def main():
     print(f"  Horizon        : 3–12 months (medium term)")
     print("=" * 72)
     print("\n  NOTE: Yahoo Finance is not reachable in this cloud environment (403).")
-    print("  Fundamentals/valuations are from training data. Charts use an")
-    print("  interpolated price series anchored to known historical price levels.\n")
+    print("  Fundamentals/valuations sourced via live web search (June 10, 2026).")
+    print("  Charts use a synthetic OHLCV series anchored to known key price levels.\n")
 
     results = {}
 
