@@ -106,5 +106,5 @@ The main limitation is that we're not modeling the full resonant body of the ins
 - Rossing, T.D. (2000). [*Science of Percussion Instruments*](https://www.amazon.com/Science-Percussion-Instruments-Popular/dp/9810241585). World Scientific.
 - Rossing, T.D., Moore, F.R. & Wheeler, P.A. (2001). [*The Science of Sound* (3rd ed.)](https://www.amazon.com/Science-Sound-3rd-Thomas-Rossing/dp/0805385657). Addison-Wesley.
 - Fletcher, N.H. & Rossing, T.D. (1998). [*The Physics of Musical Instruments* (2nd ed.)](https://link.springer.com/book/10.1007/978-0-387-21603-4). Springer.
-- Deutsch, B.M., Ramirez, C.L. & Moore, T.R. (2004). [The dynamics and tuning of orchestral crotales](https://scholarship.rollins.edu/stud_fac/3/). *Journal of the Acoustical Society of America*, 115(5), 2530.
+- Deutsch, B.M., Ramirez, C.L. & Moore, T.R. (2004). [The dynamics and tuning of orchestral crotales](https://scholarship.rollins.edu/stud_fac/3/). *Journal of the Acoustical Society of America*, 116(4), 2427–2433.
 - Adams Musical Instruments. [*Percussion Instrument Manuals*](https://www.adams-music.com/en/support/percussion) (Alpha Vibraphone, Concert/Solist Marimba & Xylophone, Artist/Concert Glockenspiel). Adams Musical Instruments B.V., Thorn, Netherlands.
