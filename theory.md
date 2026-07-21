@@ -72,13 +72,37 @@ Like a piano, a vibraphone has a sustain pedal — but the mechanism is differen
 
 ## Crotales
 
-Crotales (also called antique cymbals) are small, thick bronze discs — a real orchestral set typically spans two chromatic octaves, C6–C8. This app fits them into the same shared G4–C7 layout used by the other four instruments, trading strict orchestral range for a single consistent keyboard.
+Crotales (also called antique cymbals) are small, thick discs of **bell bronze** — the same ~80% copper / 20% tin alloy used for cymbals and bells — with a heavy boss (a "central mass") at the middle. A real orchestral set spans two chromatic octaves, C6–C8; the Zildjian set measured in the research below runs from a 132.8 mm disc at C6 down to 76.5 mm at C8, with a thin-plate section only 4.7 mm thick and a central mass 29.3 mm across and 13.1 mm thick. This app fits crotales into the same shared G4–C7 layout as the other four instruments, trading strict orchestral range for a single consistent keyboard.
 
-Unlike the other instruments here, a crotale isn't a bar at all — it's closer to a clamped circular plate with an added central mass (a small boss at the middle of the disc, partly for tuning). That geometry means its spectrum doesn't come from the free-bar equation that governs glockenspiel, marimba, and vibraphone; it comes from circular-plate nodal-diameter modes, conventionally labeled by their diameter count: (2,0), (3,0), (4,0).
+Unlike everything else here, a crotale isn't a bar — it's closer to a circular plate fixed at the center by that added mass. Its spectrum doesn't come from the free-bar equation that governs glockenspiel, marimba, and vibraphone; it comes from circular-plate **nodal-diameter modes**, labeled by their number of diameter and circle nodes: (2,0), (3,0), (4,0).
 
-Deutsch, Ramirez & Moore (2004) measured these three modes across a two-octave orchestral set and found the (3,0)/(2,0) ratio sits close to — but not exactly on — the "pure" 2:1 octave, and (4,0)/(2,0) sits close to the "pure" 7:2 ratio. That near-miss is the interesting part: it's close enough to sound clean and consonant, but not so exact that it sounds like a synthesized harmonic tone. This is why crotales are often singled out as the most bell-like, least "clangy" idiophone in the orchestral percussion section — their inharmonicity is real but subtle, in contrast to glockenspiel's much more overt 2.756× signature.
+### The nonexistent fundamental
 
-Bronze has very low internal damping compared to wood or even aluminum, and combined with hard mallets exciting mostly the fundamental, this gives crotales an unusually long, clear sustain — long enough that players often stop the ring by hand (or, for the "water crotales" effect, by dipping the disc in water) rather than waiting it out. The synthesis here reflects that with the longest decay time of any instrument in this app.
+The striking thing about crotales is that the disc has no true fundamental. The three acoustically important modes sit in the ratio **≈ 2 : 4 : 7** — that is, they're the 2nd, 4th, and 7th harmonics of a fundamental an octave *below* the perceived pitch that **isn't actually present**. The ear supplies the missing root, and the perceived pitch is the lowest real mode, the (2,0). Measured *relative to that (2,0) mode*, the ideal ratios are:
+
+| Mode | Ideal ratio to (2,0) | Interval |
+|------|---------------------|----------|
+| (2,0) | 1.000 | perceived pitch |
+| (3,0) | 2.000 | octave (2:1) |
+| (4,0) | 3.500 | octave + minor 7th (7:2) |
+
+That's a nearly-consonant, nearly-harmonic stack, which is exactly why crotales are the most bell-like and least "clangy" idiophone in the percussion section — their inharmonicity is subtle, in contrast to glockenspiel's overt 2.756× signature.
+
+### …but not ideally tuned
+
+Deutsch, Ramirez & Moore (2004) measured the whole C6–C8 set and showed crotales are *not* actually tuned to those ideals — and get steadily worse as the scale ascends. The central mass has the same radius on every disc in the set (only the plate diameter changes with pitch), so the tuning that's near-perfect at the bottom drifts flat toward the top. Both upper modes sag relative to the (2,0):
+
+| Note | (3,0)/(2,0) | (4,0)/(2,0) |
+|------|-------------|-------------|
+| C6 (bottom) | 2.006 | 3.475 |
+| C7 (middle) | ~1.91 | ~3.0–3.1 |
+| C8 (top)    | 1.740 | 2.828 |
+
+This app reproduces that measured drift rather than idealizing it. The two upper partials use a linear fit to the paper's Table I as a function of pitch (`rFn` in the `MODES.crotales` config), so a low bar rings close to the clean 1 : 2 : 3.5 stack and a high bar pulls noticeably flatter — the real instrument's imperfect intonation, audible as a slightly darker, less "octave-locked" shimmer up top.
+
+### Long ring
+
+Bronze has very low internal damping compared to wood or even aluminum, and hard mallets excite mostly the lowest modes, so crotales have an unusually long, clear sustain — long enough that players routinely stop the ring by hand (or, for the "water crotale" effect, by dipping the disc in water) rather than waiting it out. The synthesis reflects this with the longest decay of any instrument in the app, and no wood-thump noise burst in the attack (solid bronze, struck with a hard cork or plastic mallet).
 
 ---
 
