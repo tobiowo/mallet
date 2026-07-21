@@ -11,6 +11,7 @@ Supported instruments:
 - Xylophone
 - Marimba
 - Vibraphone
+- Crotales
 
 ## Features
 

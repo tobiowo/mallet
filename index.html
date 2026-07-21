@@ -21,6 +21,7 @@
     <button class="mode-btn"        data-mode="xylophone">Xylophone</button>
     <button class="mode-btn"        data-mode="marimba">Marimba</button>
     <button class="mode-btn"        data-mode="vibraphone">Vibraphone</button>
+    <button class="mode-btn"        data-mode="crotales">Crotales</button>
   </div>
 
   <div class="frame-wrap">
@@ -174,6 +175,33 @@ const MODES = {
     tremolo: { rate: 5.4, depth: 0.13 },
     verb: { dur: 2.4, dec: 2.2 },
   },
+  crotales: {
+    // Crotales are thick bell-bronze discs with a central mass, not free bars —
+    // their spectrum comes from circular-plate nodal-diameter modes, labeled
+    // (2,0), (3,0), (4,0) by their diameter/circle node counts. The struck disc
+    // has no true fundamental: the perceived pitch is the (2,0) mode, and the
+    // three modes sit at ~2 : ~4 : ~7 — i.e. the 2nd, 4th, and 7th harmonics of
+    // a "nonexistent fundamental" an octave below the pitch. Relative to the
+    // (2,0) mode that's the "ideal" 1 : 2 : 3.5, which is why crotales sound
+    // unusually clean and bell-like next to the overtly inharmonic glockenspiel.
+    //
+    // But real crotales aren't ideally tuned: Deutsch, Ramirez & Moore (2004)
+    // measured the whole C6–C8 Zildjian set and found both upper modes go
+    // progressively FLAT relative to the (2,0) as the scale ascends (their
+    // Table I / Fig. 5). rFn reproduces that measured trend with a linear fit
+    // to their data, so low bars ring near 1:2:3.5 and high bars pull flatter —
+    // audibly the real instrument's imperfect intonation, not an idealization.
+    // Hard mallets give a fast, bright attack; solid bronze gives an
+    // exceptionally long, clear ring (players often damp by hand rather than
+    // wait it out).
+    partials: [
+      { r: 1.000, a: 1.00, t: 9.0 },
+      { rFn: m => -0.01054 * m + 2.8807, a: 0.22, t: 4.5 }, // (3,0)/(2,0): ~2.18 (G4) → ~1.87 (C7)
+      { rFn: m => -0.02504 * m + 5.5409, a: 0.07, t: 2.0 }, // (4,0)/(2,0): ~3.86 (G4) → ~3.14 (C7)
+    ],
+    gain: 0.23, attack: 0.002, reverbMix: 0.11, maxT: 9.5,
+    verb: { dur: 2.6, dec: 2.6 },
+  },
 };
 
 let globalVibeLFO = null, globalVibeLFOGain = null;
@@ -264,7 +292,8 @@ function ding(midi) {
   }
 
   cfg.partials.forEach(p => {
-    const freq = f * p.r;
+    const pr = p.rFn ? p.rFn(midi) : p.r;
+    const freq = f * pr;
     if (freq >= actx.sampleRate / 2) return; // above Nyquist — skip to avoid aliasing
     const o = actx.createOscillator(), g = actx.createGain();
     o.type = 'sine'; o.frequency.value = freq;

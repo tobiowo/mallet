@@ -70,6 +70,42 @@ Like a piano, a vibraphone has a sustain pedal — but the mechanism is differen
 
 ---
 
+## Crotales
+
+Crotales (also called antique cymbals) are small, thick discs of **bell bronze** — the same ~80% copper / 20% tin alloy used for cymbals and bells — with a heavy boss (a "central mass") at the middle. A real orchestral set spans two chromatic octaves, C6–C8; the Zildjian set measured in the research below runs from a 132.8 mm disc at C6 down to 76.5 mm at C8, with a thin-plate section only 4.7 mm thick and a central mass 29.3 mm across and 13.1 mm thick. This app fits crotales into the same shared G4–C7 layout as the other four instruments, trading strict orchestral range for a single consistent keyboard.
+
+Unlike everything else here, a crotale isn't a bar — it's closer to a circular plate fixed at the center by that added mass. Its spectrum doesn't come from the free-bar equation that governs glockenspiel, marimba, and vibraphone; it comes from circular-plate **nodal-diameter modes**, labeled by their number of diameter and circle nodes: (2,0), (3,0), (4,0).
+
+### The nonexistent fundamental
+
+The striking thing about crotales is that the disc has no true fundamental. The three acoustically important modes sit in the ratio **≈ 2 : 4 : 7** — that is, they're the 2nd, 4th, and 7th harmonics of a fundamental an octave *below* the perceived pitch that **isn't actually present**. The ear supplies the missing root, and the perceived pitch is the lowest real mode, the (2,0). Measured *relative to that (2,0) mode*, the ideal ratios are:
+
+| Mode | Ideal ratio to (2,0) | Interval |
+|------|---------------------|----------|
+| (2,0) | 1.000 | perceived pitch |
+| (3,0) | 2.000 | octave (2:1) |
+| (4,0) | 3.500 | octave + minor 7th (7:2) |
+
+That's a nearly-consonant, nearly-harmonic stack, which is exactly why crotales are the most bell-like and least "clangy" idiophone in the percussion section — their inharmonicity is subtle, in contrast to glockenspiel's overt 2.756× signature.
+
+### …but not ideally tuned
+
+Deutsch, Ramirez & Moore (2004) measured the whole C6–C8 set and showed crotales are *not* actually tuned to those ideals — and get steadily worse as the scale ascends. The central mass has the same radius on every disc in the set (only the plate diameter changes with pitch), so the tuning that's near-perfect at the bottom drifts flat toward the top. Both upper modes sag relative to the (2,0):
+
+| Note | (3,0)/(2,0) | (4,0)/(2,0) |
+|------|-------------|-------------|
+| C6 (bottom) | 2.006 | 3.475 |
+| C7 (middle) | ~1.91 | ~3.0–3.1 |
+| C8 (top)    | 1.740 | 2.828 |
+
+This app reproduces that measured drift rather than idealizing it. The two upper partials use a linear fit to the paper's Table I as a function of pitch (`rFn` in the `MODES.crotales` config), so a low bar rings close to the clean 1 : 2 : 3.5 stack and a high bar pulls noticeably flatter — the real instrument's imperfect intonation, audible as a slightly darker, less "octave-locked" shimmer up top.
+
+### Long ring
+
+Bronze has very low internal damping compared to wood or even aluminum, and hard mallets excite mostly the lowest modes, so crotales have an unusually long, clear sustain — long enough that players routinely stop the ring by hand (or, for the "water crotale" effect, by dipping the disc in water) rather than waiting it out. The synthesis reflects this with the longest decay of any instrument in the app, and no wood-thump noise burst in the attack (solid bronze, struck with a hard cork or plastic mallet).
+
+---
+
 ## Why Wood Sounds Different from Metal
 
 The timbre difference between marimba (wood) and glockenspiel (metal) comes down to two properties:
@@ -82,7 +118,7 @@ The timbre difference between marimba (wood) and glockenspiel (metal) comes down
 
 ## Additive Synthesis
 
-All four instruments use **additive synthesis**: multiple sine wave oscillators are added together, each representing one partial. This is the simplest and most direct way to model a pitched percussion instrument — real instruments also produce a small number of dominant partials.
+All five instruments use **additive synthesis**: multiple sine wave oscillators are added together, each representing one partial. This is the simplest and most direct way to model a pitched percussion instrument — real instruments also produce a small number of dominant partials.
 
 The main limitation is that we're not modeling the full resonant body of the instrument, just the spectral content. A convolution reverb impulse response (generated procedurally from exponential noise decay) adds some room character back.
 
@@ -94,4 +130,5 @@ The main limitation is that we're not modeling the full resonant body of the ins
 - Rossing, T.D. (2000). [*Science of Percussion Instruments*](https://www.amazon.com/Science-Percussion-Instruments-Popular/dp/9810241585). World Scientific.
 - Rossing, T.D., Moore, F.R. & Wheeler, P.A. (2001). [*The Science of Sound* (3rd ed.)](https://www.amazon.com/Science-Sound-3rd-Thomas-Rossing/dp/0805385657). Addison-Wesley.
 - Fletcher, N.H. & Rossing, T.D. (1998). [*The Physics of Musical Instruments* (2nd ed.)](https://link.springer.com/book/10.1007/978-0-387-21603-4). Springer.
+- Deutsch, B.M., Ramirez, C.L. & Moore, T.R. (2004). [The dynamics and tuning of orchestral crotales](https://scholarship.rollins.edu/stud_fac/3/). *Journal of the Acoustical Society of America*, 116(4), 2427–2433.
 - Adams Musical Instruments. [*Percussion Instrument Manuals*](https://www.adams-music.com/en/support/percussion) (Alpha Vibraphone, Concert/Solist Marimba & Xylophone, Artist/Concert Glockenspiel). Adams Musical Instruments B.V., Thorn, Netherlands.
