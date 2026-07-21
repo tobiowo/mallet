@@ -21,6 +21,7 @@
     <button class="mode-btn"        data-mode="xylophone">Xylophone</button>
     <button class="mode-btn"        data-mode="marimba">Marimba</button>
     <button class="mode-btn"        data-mode="vibraphone">Vibraphone</button>
+    <button class="mode-btn"        data-mode="crotales">Crotales</button>
   </div>
 
   <div class="frame-wrap">
@@ -173,6 +174,23 @@ const MODES = {
     gain: 0.24, attack: 0.005, reverbMix: 0.14, maxT: 7.0,
     tremolo: { rate: 5.4, depth: 0.13 },
     verb: { dur: 2.4, dec: 2.2 },
+  },
+  crotales: {
+    // Crotales are thick bronze discs, not free bars — their spectrum comes
+    // from circular-plate nodal-diameter modes (Deutsch, Ramirez & Moore 2004),
+    // conventionally labeled (2,0), (3,0), (4,0). Those land close to — but not
+    // exactly on — the "pure" 1 : 2 : 3.5 ratios, which is why crotales sound
+    // unusually clean and bell-like next to the more overtly inharmonic
+    // glockenspiel. Hard mallets give a fast, bright attack; solid bronze
+    // gives an exceptionally long, clear ring (orchestral players often damp
+    // them by hand rather than let them decay naturally).
+    partials: [
+      { r: 1.000, a: 1.00, t: 9.0 },
+      { r: 1.994, a: 0.22, t: 4.5 },
+      { r: 3.530, a: 0.07, t: 2.0 },
+    ],
+    gain: 0.23, attack: 0.002, reverbMix: 0.11, maxT: 9.5,
+    verb: { dur: 2.6, dec: 2.6 },
   },
 };
 

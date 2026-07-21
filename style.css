@@ -440,6 +440,28 @@ footer {
 .bars-wrapper[data-mode="vibraphone"] .bar.natural .bar-label { color: #3a3020; }
 .bars-wrapper[data-mode="vibraphone"] .bar.natural .key-label { color: rgba(50,40,20,0.72); }
 
+/* ── CROTALES: polished bronze discs ── */
+.bars-wrapper[data-mode="crotales"] .bar.natural {
+  background: linear-gradient(90deg,
+    #6b4a10  0%, #a67818  8%, #c89428 17%,
+    #e0ac38 24%, #f0c048 31%, #fbd058 38%,
+    #f2c24c 44%, #daa838 54%, #ba8420 68%,
+    #96661a 83%, #704e12 100%);
+  box-shadow: 4px 0 8px rgba(0,0,0,0.5), -2px 0 5px rgba(0,0,0,0.3),
+    0 10px 22px rgba(0,0,0,0.65), inset 0 0 1px rgba(255,232,160,0.85);
+}
+.bars-wrapper[data-mode="crotales"] .bar.sharp {
+  background: linear-gradient(90deg,
+    #1c1204  0%, #2c1c08 12%, #3a260c 25%,
+    #443010 37%, #4a3412 46%, #443010 55%,
+    #362810 70%, #241804 84%, #180e02 100%);
+}
+.bars-wrapper[data-mode="crotales"] .bar.natural .bar-label { color: #2a1c06; }
+.bars-wrapper[data-mode="crotales"] .bar.natural .key-label { color: rgba(42,28,6,0.72); }
+.bars-wrapper[data-mode="crotales"] .bar.natural .hole {
+  background: radial-gradient(circle at 36% 32%, #8a6218, #402c0a, #140c02);
+}
+
 /* ── PRACTICE CUE ── */
 @keyframes cueNat {
   0%, 100% { filter: brightness(1.1); }

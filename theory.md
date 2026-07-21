@@ -70,6 +70,18 @@ Like a piano, a vibraphone has a sustain pedal — but the mechanism is differen
 
 ---
 
+## Crotales
+
+Crotales (also called antique cymbals) are small, thick bronze discs — a real orchestral set typically spans two chromatic octaves, C6–C8. This app fits them into the same shared G4–C7 layout used by the other four instruments, trading strict orchestral range for a single consistent keyboard.
+
+Unlike the other instruments here, a crotale isn't a bar at all — it's closer to a clamped circular plate with an added central mass (a small boss at the middle of the disc, partly for tuning). That geometry means its spectrum doesn't come from the free-bar equation that governs glockenspiel, marimba, and vibraphone; it comes from circular-plate nodal-diameter modes, conventionally labeled by their diameter count: (2,0), (3,0), (4,0).
+
+Deutsch, Ramirez & Moore (2004) measured these three modes across a two-octave orchestral set and found the (3,0)/(2,0) ratio sits close to — but not exactly on — the "pure" 2:1 octave, and (4,0)/(2,0) sits close to the "pure" 7:2 ratio. That near-miss is the interesting part: it's close enough to sound clean and consonant, but not so exact that it sounds like a synthesized harmonic tone. This is why crotales are often singled out as the most bell-like, least "clangy" idiophone in the orchestral percussion section — their inharmonicity is real but subtle, in contrast to glockenspiel's much more overt 2.756× signature.
+
+Bronze has very low internal damping compared to wood or even aluminum, and combined with hard mallets exciting mostly the fundamental, this gives crotales an unusually long, clear sustain — long enough that players often stop the ring by hand (or, for the "water crotales" effect, by dipping the disc in water) rather than waiting it out. The synthesis here reflects that with the longest decay time of any instrument in this app.
+
+---
+
 ## Why Wood Sounds Different from Metal
 
 The timbre difference between marimba (wood) and glockenspiel (metal) comes down to two properties:
@@ -82,7 +94,7 @@ The timbre difference between marimba (wood) and glockenspiel (metal) comes down
 
 ## Additive Synthesis
 
-All four instruments use **additive synthesis**: multiple sine wave oscillators are added together, each representing one partial. This is the simplest and most direct way to model a pitched percussion instrument — real instruments also produce a small number of dominant partials.
+All five instruments use **additive synthesis**: multiple sine wave oscillators are added together, each representing one partial. This is the simplest and most direct way to model a pitched percussion instrument — real instruments also produce a small number of dominant partials.
 
 The main limitation is that we're not modeling the full resonant body of the instrument, just the spectral content. A convolution reverb impulse response (generated procedurally from exponential noise decay) adds some room character back.
 
@@ -94,4 +106,5 @@ The main limitation is that we're not modeling the full resonant body of the ins
 - Rossing, T.D. (2000). [*Science of Percussion Instruments*](https://www.amazon.com/Science-Percussion-Instruments-Popular/dp/9810241585). World Scientific.
 - Rossing, T.D., Moore, F.R. & Wheeler, P.A. (2001). [*The Science of Sound* (3rd ed.)](https://www.amazon.com/Science-Sound-3rd-Thomas-Rossing/dp/0805385657). Addison-Wesley.
 - Fletcher, N.H. & Rossing, T.D. (1998). [*The Physics of Musical Instruments* (2nd ed.)](https://link.springer.com/book/10.1007/978-0-387-21603-4). Springer.
+- Deutsch, B.M., Ramirez, C.L. & Moore, T.R. (2004). [The dynamics and tuning of orchestral crotales](https://scholarship.rollins.edu/stud_fac/3/). *Journal of the Acoustical Society of America*, 115(5), 2530.
 - Adams Musical Instruments. [*Percussion Instrument Manuals*](https://www.adams-music.com/en/support/percussion) (Alpha Vibraphone, Concert/Solist Marimba & Xylophone, Artist/Concert Glockenspiel). Adams Musical Instruments B.V., Thorn, Netherlands.
