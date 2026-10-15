@@ -242,10 +242,17 @@ function mkVerb(c, dur, dec) {
 
 const hz = m => 440 * Math.pow(2, (m - 69) / 12);
 
-function ding(midi) {
+// Velocity → loudness and brightness. vel is MIDI 1–127; keyboard/mouse hits
+// default to 127 so live playing is unchanged. A harder strike is both louder
+// and brighter: real mallets excite more upper partials the harder they hit.
+const velGain   = vel => Math.pow(vel / 127, 1.5);
+const velBright = vel => 0.4 + 0.6 * vel / 127;
+
+function ding(midi, vel = 127) {
   boot();
   const cfg = MODES[currentMode];
   const f = hz(midi), t = actx.currentTime;
+  const loud = velGain(vel), bright = velBright(vel);
 
   // Retrigger: fade previous voice on this pitch out fast
   const prev = live.get(midi);
@@ -255,7 +262,7 @@ function ding(midi) {
   const damped = currentMode === 'vibraphone' && !pedalDown;
   // mg stays flat at cfg.gain — natural decay is handled by each partial's own
   // envelope. mg is only used for forced damping (retrigger / pedal release).
-  mg.gain.setValueAtTime(cfg.gain, t);
+  mg.gain.setValueAtTime(cfg.gain * loud, t);
   if (damped) mg.gain.setTargetAtTime(0.0001, t, 0.18 / 4); // immediate damp
   if (currentMode === 'vibraphone') vibeVoices.set(midi, mg);
 
@@ -283,7 +290,7 @@ function ding(midi) {
     const noiseFreq = currentMode === 'marimba' ? Math.min(f * 0.6, 500) : f;
     const noiseQ    = currentMode === 'marimba' ? 0.8 : 1.5;
     const noiseDur  = currentMode === 'marimba' ? 0.055 : 0.035;
-    const noiseAmp  = currentMode === 'marimba' ? 0.12 : 0.18;
+    const noiseAmp  = (currentMode === 'marimba' ? 0.12 : 0.18) * bright;
     const nf = actx.createBiquadFilter(); nf.type = 'bandpass'; nf.frequency.value = noiseFreq; nf.Q.value = noiseQ;
     const ng = actx.createGain();
     ng.gain.setValueAtTime(noiseAmp, t); ng.gain.exponentialRampToValueAtTime(0.0001, t + noiseDur);
@@ -291,13 +298,13 @@ function ding(midi) {
     ns.start(t); ns.stop(t + noiseDur + 0.015);
   }
 
-  cfg.partials.forEach(p => {
+  cfg.partials.forEach((p, i) => {
     const pr = p.rFn ? p.rFn(midi) : p.r;
     const freq = f * pr;
     if (freq >= actx.sampleRate / 2) return; // above Nyquist — skip to avoid aliasing
     const o = actx.createOscillator(), g = actx.createGain();
     o.type = 'sine'; o.frequency.value = freq;
-    const pa = p.aFn ? p.aFn(midi) : p.a;
+    const pa = (p.aFn ? p.aFn(midi) : p.a) * (i ? bright : 1);
     const pt = p.tFn ? p.tFn(midi) : p.t;
     g.gain.setValueAtTime(0, t);
     g.gain.linearRampToValueAtTime(pa, t + cfg.attack);

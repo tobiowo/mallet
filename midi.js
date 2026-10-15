@@ -4,12 +4,12 @@
    Depends on globals from index.html:
      BAR_LO, BAR_HI  — bar range constants
      midi2el          — midi pitch → bar DOM element
-     ding(midi)       — play a note
+     ding(midi, vel)  — play a note
      flash(el)        — flash a bar
      onNotePlayed     — callback hook (reassigned here)
      boot()           — initialise AudioContext
 ═══════════════════════════════════════════ */
-let rawAll        = null;  // [{time, pitch, track}] all parsed notes
+let rawAll        = null;  // [{time, pitch, vel, track}] all parsed notes
 let activeTracks  = new Set();
 let song          = null;  // rawAll filtered by activeTracks
 let inRange       = null;  // subset of song within G4–C7 bar range
@@ -140,7 +140,7 @@ function startListen() {
 
   events.forEach(e => {
     const tid = setTimeout(() => {
-      ding(e.pitch);
+      ding(e.pitch, e.vel);
       const el = midi2el[e.pitch];
       if (el) flash(el);
     }, e.time / speed * 1000);
