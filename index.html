@@ -13,7 +13,7 @@
 
   <header>
     <h1>Glockenspiel</h1>
-    <p>Click bars &nbsp;·&nbsp; Use keyboard &nbsp;·&nbsp; G4 – C7</p>
+    <p>Click bars &nbsp;·&nbsp; Use keyboard &nbsp;·&nbsp; G4 – C7<span id="octaveNote"> · sounds 8va</span></p>
   </header>
 
   <div class="mode-selector">
@@ -132,6 +132,7 @@ const MODES = {
       { r: 13.34, a: 0.035,t: 0.70 },
     ],
     gain: 0.26, attack: 0.003, reverbMix: 0.09, maxT: 5.6,
+    transpose: 12, // sounds G5–C8 — a real glockenspiel's range
     verb: { dur: 1.8, dec: 3.0 },
   },
   xylophone: {
@@ -193,15 +194,18 @@ const MODES = {
     // Table I / Fig. 5). rFn reproduces that measured trend with a linear fit
     // to their data, so low bars ring near 1:2:3.5 and high bars pull flatter —
     // audibly the real instrument's imperfect intonation, not an idealization.
+    // rFn receives the sounding pitch, so with the octave transpose the bars
+    // land almost entirely inside the measured C6–C8 range.
     // Hard mallets give a fast, bright attack; solid bronze gives an
     // exceptionally long, clear ring (players often damp by hand rather than
     // wait it out).
     partials: [
       { r: 1.000, a: 1.00, t: 9.0 },
-      { rFn: m => -0.01054 * m + 2.8807, a: 0.22, t: 4.5 }, // (3,0)/(2,0): ~2.18 (G4) → ~1.87 (C7)
-      { rFn: m => -0.02504 * m + 5.5409, a: 0.07, t: 2.0 }, // (4,0)/(2,0): ~3.86 (G4) → ~3.14 (C7)
+      { rFn: m => -0.01054 * m + 2.8807, a: 0.22, t: 4.5 }, // (3,0)/(2,0): ~2.05 (G5) → ~1.74 (C8)
+      { rFn: m => -0.02504 * m + 5.5409, a: 0.07, t: 2.0 }, // (4,0)/(2,0): ~3.56 (G5) → ~2.84 (C8)
     ],
     gain: 0.23, attack: 0.002, reverbMix: 0.11, maxT: 9.5,
+    transpose: 12, // sounds G5–C8, overlapping the real C6–C8 set
     verb: { dur: 2.6, dec: 2.6 },
   },
 };
@@ -253,7 +257,9 @@ const velBright = vel => 0.4 + 0.6 * vel / 127;
 function ding(midi, vel = 127) {
   boot();
   const cfg = MODES[currentMode];
-  const f = hz(midi), t = actx.currentTime;
+  // `midi` is the bar; `sm` is the pitch the instrument actually sounds
+  const sm = midi + (cfg.transpose || 0);
+  const f = hz(sm), t = actx.currentTime;
   const loud = velGain(vel), bright = velBright(vel);
 
   // Retrigger: fade previous voice on this pitch out fast
@@ -301,13 +307,13 @@ function ding(midi, vel = 127) {
   }
 
   cfg.partials.forEach((p, i) => {
-    const pr = p.rFn ? p.rFn(midi) : p.r;
+    const pr = p.rFn ? p.rFn(sm) : p.r;
     const freq = f * pr;
     if (freq >= actx.sampleRate / 2) return; // above Nyquist — skip to avoid aliasing
     const o = actx.createOscillator(), g = actx.createGain();
     o.type = 'sine'; o.frequency.value = freq;
-    const pa = (p.aFn ? p.aFn(midi) : p.a) * (i ? bright : 1);
-    const pt = p.tFn ? p.tFn(midi) : p.t;
+    const pa = (p.aFn ? p.aFn(sm) : p.a) * (i ? bright : 1);
+    const pt = p.tFn ? p.tFn(sm) : p.t;
     g.gain.setValueAtTime(0, t);
     g.gain.linearRampToValueAtTime(pa, t + cfg.attack);
     g.gain.exponentialRampToValueAtTime(0.0001, t + pt);
@@ -503,6 +509,7 @@ modeButtons.forEach(btn => {
     btn.classList.add('active');
     wrap.dataset.mode = currentMode;
     document.querySelector('header h1').textContent = btn.textContent;
+    document.getElementById('octaveNote').textContent = MODES[currentMode].transpose ? ' · sounds 8va' : '';
 
     // Show pedal hint only for vibraphone
     pedalEl.classList.toggle('visible', currentMode === 'vibraphone');

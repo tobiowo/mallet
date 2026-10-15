@@ -18,6 +18,7 @@ Supported instruments:
 - **3 octaves**: G4–C7 (18 natural notes + 12 sharps = 30 notes total)
 - **Keyboard playable**: full keyboard layout for natural notes and sharps
 - **Click or tap to play**: works with mouse and touch screens
+- **Real registers**: glockenspiel and crotales sound an octave above the bar labels (G5–C8), matching the real instruments
 - **MIDI file support**: load `.mid`/`.midi` files to listen or practice with visual note cues; note velocity controls loudness and brightness
 - **Vibraphone motor tremolo**: authentic tremolo effect (adjustable fan speed); spacebar acts as sustain pedal
 - **Playback speed control**: 25–200% speed; optional silence compression
