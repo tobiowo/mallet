@@ -165,7 +165,9 @@ const MODES = {
   },
   vibraphone: {
     // Vibraphone metal-bar partials + motor-driven tremolo (~5.4 Hz).
-    // Longer sustain than glockenspiel; more reverb.
+    // Longer sustain than glockenspiel; more reverb. Bars are arch-tuned to a
+    // 4× overtone in theory, but an exact 4× sounded wrong by ear — 3.88×
+    // (~53 cents flat) was chosen deliberately.
     partials: [
       { r: 1.000, a: 1.00, t: 6.0 },
       { r: 3.880, a: 0.32, t: 3.8 },
