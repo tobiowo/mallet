@@ -116,6 +116,14 @@ The timbre difference between marimba (wood) and glockenspiel (metal) comes down
 
 ---
 
+## Register: Where Each Instrument Sounds
+
+Every instrument shares the same G4–C7 bars, but they don't all belong in that register. A glockenspiel's real sounding range is **G5–C8**, and a crotale set is **C6–C8**, so both sound an octave above the bar label (the header shows "sounds 8va"). Marimba and xylophone already contain G4–C7 within their real ranges and sound as labeled. A standard vibraphone (F3–F6) stops a fourth short of the top bar, but shifting it would make the mismatch worse, so it also sounds as labeled.
+
+Orchestral notation is more extreme: glockenspiel and crotale parts are written **two** octaves below sounding pitch, and xylophone one. A full two-octave shift on these bars would put the top note at C9, above either real instrument, so the app uses one octave. The bars, keyboard, and MIDI note mapping stay the same; only the sound moves.
+
+---
+
 ## Velocity
 
 How hard a bar is struck changes more than its volume. A harder strike shortens the mallet's contact time, which excites more of the upper partials, so loud notes are also brighter. MIDI note velocity (1–127) drives both: overall level scales as (v/127)^1.5, and every partial above the fundamental (plus the wood-thump noise) is scaled from 40% at the softest to 100% at full force. Keyboard and mouse hits play at full velocity.
