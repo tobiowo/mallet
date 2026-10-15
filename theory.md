@@ -56,6 +56,8 @@ A large concert marimba can reach as low as A2 (about 55 Hz) — some 5-octave m
 
 Vibraphone bars are **aluminum** (not steel like glockenspiel), arch-tuned like marimba to place the first overtone at **4×**. Aluminum has lower internal damping than steel, which is why vibraphone notes sustain so much longer.
 
+The synthesis departs from the theory here on purpose: an exact 4× overtone sounded wrong by ear, so the app uses **3.88×**, about 53 cents flat of two octaves.
+
 ### The Tremolo Motor
 
 A real vibraphone has a row of resonator tubes under the bars. At the top of each tube is a rotating fan (also called a disc) driven by an electric motor. The rotation speed is adjustable — the Adams Alpha specifies 40–140 RPM, though other manufacturers may differ. When a fan is open, the resonator amplifies the bar's sound. When it's closed, it dampens it. This creates the characteristic tremolo (amplitude modulation at the motor's rotation frequency).
