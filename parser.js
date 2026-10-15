@@ -1,7 +1,7 @@
 /* ═══════════════════════════════════════════
    MIDI PARSER
    Handles format 0 & 1, multi-tempo, ignores drums (ch 10).
-   Returns [{time: seconds, pitch: midiNumber, track: number}] sorted by time,
+   Returns [{time: seconds, pitch: midiNumber, vel: 1–127, track: number}] sorted by time,
    with a .trackNames array piggybacked on the result.
 ═══════════════════════════════════════════ */
 function parseMidi(ab) {
@@ -41,8 +41,8 @@ function parseMidi(ab) {
         if (type === 0x90 || type === 0x80) {
           const pitch = r8(), vel = r8();
           if (ch === 9) { /* drums — skip */ }
-          else if (type === 0x90 && vel > 0) { on[pitch] = tick; }
-          else if (on[pitch] != null)        { raw.push({ tick: on[pitch], pitch, track: t }); delete on[pitch]; }
+          else if (type === 0x90 && vel > 0) { on[pitch] = { tick, vel }; }
+          else if (on[pitch] != null)        { raw.push({ ...on[pitch], pitch, track: t }); delete on[pitch]; }
         } else if (type === 0xa0 || type === 0xb0 || type === 0xe0) { r8(); r8(); }
           else if (type === 0xc0 || type === 0xd0)                  { r8(); }
           else if (b === 0xf0 || b === 0xf7) { p += rVL(); status = 0; }
@@ -57,7 +57,7 @@ function parseMidi(ab) {
           }
       }
       // flush any note-on with no matching note-off
-      for (const [pit, st] of Object.entries(on)) raw.push({ tick: +st, pitch: +pit, track: t });
+      for (const [pit, st] of Object.entries(on)) raw.push({ ...st, pitch: +pit, track: t });
       trackNames[t] = trackName;
       p = end;
     }
@@ -76,7 +76,7 @@ function parseMidi(ab) {
       return s + (tick - lt) * lu / (1e6 * div);
     }
 
-    const events = raw.map(e => ({ time: t2s(e.tick), pitch: e.pitch, track: e.track }));
+    const events = raw.map(e => ({ time: t2s(e.tick), pitch: e.pitch, vel: e.vel, track: e.track }));
     events.trackNames = trackNames; // piggyback on the array
     return events;
   } catch(e) { console.warn('MIDI parse failed:', e); return null; }

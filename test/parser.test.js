@@ -57,6 +57,16 @@ test('format-0 file: pitches and seconds at default 120 BPM', () => {
   assert.deepEqual(ev.map(e => [e.pitch, e.time, e.track]), [[60, 0, 0], [62, 0.5, 0]]);
 });
 
+test('note-on velocity is preserved on each event', () => {
+  const ab = midiFile([[
+    ...noteOn(0, 60, 30),  ...noteOff(480, 60),
+    ...noteOn(0, 62, 110), ...noteOff(480, 62),
+    ...noteOn(0, 64, 90),                       // unmatched — flushed at track end
+  ]]);
+  const ev = parseMidi(ab);
+  assert.deepEqual(ev.map(e => [e.pitch, e.vel]), [[60, 30], [62, 110], [64, 90]]);
+});
+
 test('note-on with velocity 0 acts as note-off', () => {
   const ab = midiFile([[...noteOn(0, 60), ...noteOn(480, 60, 0)]]);
   const ev = parseMidi(ab);

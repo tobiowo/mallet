@@ -116,6 +116,12 @@ The timbre difference between marimba (wood) and glockenspiel (metal) comes down
 
 ---
 
+## Velocity
+
+How hard a bar is struck changes more than its volume. A harder strike shortens the mallet's contact time, which excites more of the upper partials, so loud notes are also brighter. MIDI note velocity (1–127) drives both: overall level scales as (v/127)^1.5, and every partial above the fundamental (plus the wood-thump noise) is scaled from 40% at the softest to 100% at full force. Keyboard and mouse hits play at full velocity.
+
+---
+
 ## Additive Synthesis
 
 All five instruments use **additive synthesis**: multiple sine wave oscillators are added together, each representing one partial. This is the simplest and most direct way to model a pitched percussion instrument — real instruments also produce a small number of dominant partials.
